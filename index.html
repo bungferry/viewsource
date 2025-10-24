@@ -1,128 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Source Clone</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View Source - Diperbaiki</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <style>
-    body {
-      font-family: monospace;
-      background: #0d1117;
-      color: #c9d1d9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
+    .container {max-width: 900px; margin: 20px auto; padding: 15px;}
+    h1 {font-size: 22px; margin-bottom: 10px;}
+    input, button {padding: 10px; border-radius: 6px; border: none; font-size: 15px;}
+    input[type=text] {flex: 1; background: #161b22; color: #e6edf3; border: 1px solid #30363d;}
+    button {background: #238636; color: white; cursor: pointer;}
+    button:hover {background: #2ea043;}
+    .controls {display: flex; gap: 8px; margin-bottom: 10px;}
+    .options {margin-bottom: 15px;}
+    /* Gaya untuk blok kode */
+    pre {background: #161b22; padding: 10px; border-radius: 6px; overflow-x: auto;}
+    
+    /* MODIFIKASI: Gaya untuk Preview Modal Gagal */
+    #preview-modal {
+      position: fixed; /* Membuatnya terlihat seperti modal */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8); /* Background gelap transparan */
+      display: none; /* Awalnya disembunyikan */
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
-
-    header {
-      background: #161b22;
-      padding: 10px;
+    #preview-content {
+      background: #280a0a; /* Warna latar belakang gelap kemerahan untuk error */
+      border: 3px solid #ff4d4d; /* Border merah terang */
+      padding: 30px;
+      border-radius: 10px;
       text-align: center;
-      border-bottom: 1px solid #30363d;
+      box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+      max-width: 80%;
+      color: #ffcccc; /* Warna teks pudar */
     }
+    #preview-content h2 {
+      color: #ff4d4d;
+      margin-top: 0;
+    }
+    #preview-content p {
+      margin-bottom: 0;
+    }
+    /* Akhir MODIFIKASI */
 
-    input {
-      width: 80%;
-      max-width: 600px;
-      padding: 8px;
-      background: #0d1117;
-      color: #c9d1d9;
-      border: 1px solid #30363d;
-      border-radius: 5px;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      padding: 10px;
-    }
-
-    #preview, #source {
-      flex: 1;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      background: #161b22;
-      overflow: auto;
-    }
-
-    #preview {
-      padding: 10px;
-    }
-
-    pre {
-      margin: 0;
-      padding: 10px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: monospace;
-      font-size: 14px;
-    }
-
-    button {
-      margin-left: 10px;
-      padding: 8px 12px;
-      background: #238636;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #2ea043;
-    }
-
-    @media (max-width: 768px) {
-      main {
-        flex-direction: column;
-      }
-      input {
-        width: 95%;
-      }
-    }
+    label {font-size: 14px; margin-right: 10px;}
+    #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
 </head>
 <body>
-  <header>
-    <input id="urlInput" type="text" placeholder="Masukkan URL (contoh: https://example.com)" />
-    <button onclick="fetchSource()">Lihat Kode</button>
-  </header>
-
-  <main>
-    <div id="preview"><i>Pratinjau halaman akan tampil di sini...</i></div>
-    <div id="source"><pre id="code">Kode sumber akan tampil di sini...</pre></div>
-  </main>
-
+  <div class="container">
+    <h1>View Source Diperbaiki</h1>
+    <div class="controls">
+      <input type="text" id="urlInput" placeholder="https://example.com" value="https://example.com" />
+      <button id="viewBtn">View Source</button>
+    </div>
+    <div class="options">
+      <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
+      <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
+      <label><input type="checkbox" id="showPreview"> Tampilkan Preview Rusak</label>
+    </div>
+    <div id="status"></div>
+    <pre><code id="codeBlock" class="html"></code></pre>
+  </div>
+  
+  <div id="preview-modal">
+    <div id="preview-content">
+      <h2>❌ Gagal Memuat Preview</h2>
+      <p>Akses ke konten eksternal diblokir atau terjadi kegagalan rendering.</p>
+      <p>Kode sumber mentah mungkin bermasalah atau melanggar kebijakan keamanan (CORS).</p>
+      <p>Tekan tombol ESC atau klik di luar kotak ini untuk menutup.</p>
+      <div id="actual-preview-content" style="display: none;"></div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script>
-    async function fetchSource() {
-      const url = document.getElementById('urlInput').value.trim();
-      const codeEl = document.getElementById('code');
-      const previewEl = document.getElementById('preview');
+    const urlInput = document.getElementById('urlInput');
+    const codeBlock = document.getElementById('codeBlock');
+    const viewBtn = document.getElementById('viewBtn');
+    const status = document.getElementById('status');
+    // MODIFIKASI: Ambil elemen modal baru
+    const previewModal = document.getElementById('preview-modal');
+    const actualPreviewContent = document.getElementById('actual-preview-content');
+    const previewContent = document.getElementById('preview-content');
+    const useProxy = document.getElementById('useProxy');
+    const useLocalProxy = document.getElementById('useLocalProxy');
+    const showPreview = document.getElementById('showPreview');
 
-      if (!url) {
-        codeEl.textContent = 'Masukkan URL valid terlebih dahulu.';
-        return;
-      }
+    // Fungsi untuk menutup modal
+    function closePreviewModal() {
+      previewModal.style.display = 'none';
+      // Hapus event listener sementara agar tidak tumpang tindih
+      document.removeEventListener('keydown', handleEscapeKey);
+      previewModal.removeEventListener('click', handleOutsideClick);
+    }
 
-      try {
-        codeEl.textContent = 'Mengambil kode...';
-        previewEl.innerHTML = '<i>Memuat pratinjau...</i>';
-
-        const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
-        const text = await res.text();
-
-        codeEl.textContent = text;
-        previewEl.srcdoc = text;
-        previewEl.innerHTML = text;
-      } catch (e) {
-        codeEl.textContent = 'Gagal mengambil kode: ' + e.message;
-        previewEl.innerHTML = '<span style="color:red;">Gagal memuat pratinjau.</span>';
+    // Handler untuk tombol ESC
+    function handleEscapeKey(event) {
+      if (event.key === 'Escape') {
+        closePreviewModal();
       }
     }
+    
+    // Handler untuk klik di luar konten modal
+    function handleOutsideClick(event) {
+      if (event.target === previewModal) {
+        closePreviewModal();
+      }
+    }
+
+    async function fetchSource(url) {
+      try {
+        let fetchUrl = url;
+        if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
+        status.textContent = 'Mengambil sumber...';
+        
+        // Sembunyikan modal jika sedang tampil
+        closePreviewModal();
+
+        const res = await fetch(fetchUrl);
+        if (!res.ok) throw new Error('Gagal memuat: ' + res.status);
+        const html = await res.text();
+        status.textContent = 'Berhasil dimuat.';
+        
+        // MODIFIKASI: Format HTML menggunakan js_beautify.html_beautify
+        const formattedHtml = html_beautify(html, { 
+            indent_size: 2, 
+            space_in_empty_paren: true,
+            end_with_newline: true
+        });
+
+        // Tampilkan kode yang sudah terformat
+        codeBlock.textContent = formattedHtml;
+        hljs.highlightElement(codeBlock); // Highlight kode yang sudah terformat
+
+        if (showPreview.checked) {
+          // Masukkan HTML ke div tersembunyi (seolah-olah dicoba render)
+          actualPreviewContent.innerHTML = html; 
+          
+          // Tampilkan modal yang rusak
+          previewModal.style.display = 'flex';
+          
+          // Tambahkan event listener untuk menutup modal
+          document.addEventListener('keydown', handleEscapeKey);
+          previewModal.addEventListener('click', handleOutsideClick);
+        }
+
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        // Bersihkan blok kode jika terjadi error
+        codeBlock.textContent = '';
+        closePreviewModal();
+      }
+    }
+
+    viewBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (!url) return status.textContent = 'Masukkan URL valid.';
+      fetchSource(url);
+    });
   </script>
 </body>
-</html>
+  </html>

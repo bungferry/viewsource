@@ -1,81 +1,128 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Sederhana</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Source Clone</title>
   <style>
-    body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
-    .container {max-width: 900px; margin: 20px auto; padding: 15px;}
-    h1 {font-size: 22px; margin-bottom: 10px;}
-    input, button {padding: 10px; border-radius: 6px; border: none; font-size: 15px;}
-    input[type=text] {flex: 1; background: #161b22; color: #e6edf3; border: 1px solid #30363d;}
-    button {background: #238636; color: white; cursor: pointer;}
-    button:hover {background: #2ea043;}
-    .controls {display: flex; gap: 8px; margin-bottom: 10px;}
-    .options {margin-bottom: 15px;}
-    pre {background: #161b22; padding: 10px; border-radius: 6px; overflow-x: auto;}
-    #preview {background: #fff; color: #000; padding: 10px; margin-top: 10px; border-radius: 6px; display:none;}
-    label {font-size: 14px; margin-right: 10px;}
-    #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
+    body {
+      font-family: monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background: #161b22;
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #30363d;
+    }
+
+    input {
+      width: 80%;
+      max-width: 600px;
+      padding: 8px;
+      background: #0d1117;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 5px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    #preview, #source {
+      flex: 1;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      background: #161b22;
+      overflow: auto;
+    }
+
+    #preview {
+      padding: 10px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 10px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    button {
+      margin-left: 10px;
+      padding: 8px 12px;
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+      input {
+        width: 95%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>View Source Sederhana</h1>
-    <div class="controls">
-      <input type="text" id="urlInput" placeholder="https://example.com" value="https://example.com" />
-      <button id="viewBtn">View Source</button>
-    </div>
-    <div class="options">
-      <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
-      <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Tampilkan Preview</label>
-    </div>
-    <div id="status"></div>
-    <pre><code id="codeBlock" class="html"></code></pre>
-    <div id="preview"></div>
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-  <script>
-    const urlInput = document.getElementById('urlInput');
-    const codeBlock = document.getElementById('codeBlock');
-    const viewBtn = document.getElementById('viewBtn');
-    const status = document.getElementById('status');
-    const preview = document.getElementById('preview');
-    const useProxy = document.getElementById('useProxy');
-    const useLocalProxy = document.getElementById('useLocalProxy');
-    const showPreview = document.getElementById('showPreview');
+  <header>
+    <input id="urlInput" type="text" placeholder="Masukkan URL (contoh: https://example.com)" />
+    <button onclick="fetchSource()">Lihat Kode</button>
+  </header>
 
-    async function fetchSource(url) {
+  <main>
+    <div id="preview"><i>Pratinjau halaman akan tampil di sini...</i></div>
+    <div id="source"><pre id="code">Kode sumber akan tampil di sini...</pre></div>
+  </main>
+
+  <script>
+    async function fetchSource() {
+      const url = document.getElementById('urlInput').value.trim();
+      const codeEl = document.getElementById('code');
+      const previewEl = document.getElementById('preview');
+
+      if (!url) {
+        codeEl.textContent = 'Masukkan URL valid terlebih dahulu.';
+        return;
+      }
+
       try {
-        let fetchUrl = url;
-        if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-        if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
-        status.textContent = 'Mengambil sumber...';
-        const res = await fetch(fetchUrl);
-        if (!res.ok) throw new Error('Gagal memuat: ' + res.status);
-        const html = await res.text();
-        status.textContent = 'Berhasil dimuat.';
-        codeBlock.textContent = html;
-        hljs.highlightElement(codeBlock);
-        if (showPreview.checked) {
-          preview.innerHTML = html;
-          preview.style.display = 'block';
-        } else {
-          preview.style.display = 'none';
-        }
-      } catch (err) {
-        status.textContent = 'Error: ' + err.message;
+        codeEl.textContent = 'Mengambil kode...';
+        previewEl.innerHTML = '<i>Memuat pratinjau...</i>';
+
+        const res = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+        const text = await res.text();
+
+        codeEl.textContent = text;
+        previewEl.srcdoc = text;
+        previewEl.innerHTML = text;
+      } catch (e) {
+        codeEl.textContent = 'Gagal mengambil kode: ' + e.message;
+        previewEl.innerHTML = '<span style="color:red;">Gagal memuat pratinjau.</span>';
       }
     }
-
-    viewBtn.addEventListener('click', () => {
-      const url = urlInput.value.trim();
-      if (!url) return status.textContent = 'Masukkan URL valid.';
-      fetchSource(url);
-    });
   </script>
 </body>
 </html>

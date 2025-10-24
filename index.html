@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Profesional & Fungsional</title>
+  <title>View Source - Tanpa Iframe Preview</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -60,16 +60,6 @@
         margin-right: 5px;
     }
 
-    /* Gaya untuk Iframe Preview */
-    #previewFrame {
-        margin-top: 15px;
-        border-radius: 6px;
-        background: #fff;
-        border: 2px solid #58a6ff;
-        width: 100%;
-        height: 400px;
-    }
-
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
@@ -84,8 +74,7 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Publik</label> 
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Tampilkan Preview Asli</label>
-    </div>
+      <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label> </div>
     <div id="status"></div>
     
     <div class="code-container">
@@ -96,8 +85,7 @@
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
     
-    <iframe id="previewFrame" style="display: none;"></iframe>
-  </div>
+    </div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
@@ -109,7 +97,7 @@
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
-    const previewFrame = document.getElementById('previewFrame');
+    // const previewFrame = document.getElementById('previewFrame'); // ❗ DIHAPUS
     const codeActions = document.getElementById('codeActions');
     
     const DEFAULT_URL = 'https://example.com'; 
@@ -170,21 +158,20 @@
     // --- FUNGSI FETCH UTAMA ---
 
     async function fetchSource(url) {
-      previewFrame.style.display = 'none';
       codeBlock.textContent = '';
       hideCodeActions();
       
       let fetchUrl = url;
       let previewUrl = url;
       
-      // Tentukan URL untuk *fetching* (mengambil kode sumber yang diformat)
+      // Tentukan URL untuk fetching kode sumber yang diformat
       if (useProxy.checked) {
           fetchUrl = PROXY_BASE_URL + encodeURIComponent(url);
       } else if (useLocalProxy.checked) {
           fetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
       }
       
-      // Tentukan URL untuk *preview* (menggunakan proxy di iframe src)
+      // Tentukan URL untuk preview (dibuka di tab baru)
       if (useProxy.checked) {
           previewUrl = PROXY_BASE_URL + encodeURIComponent(url);
       } else if (useLocalProxy.checked) {
@@ -211,27 +198,21 @@
         
         showCodeActions(url); 
 
-        // 2. Menampilkan Preview (menggunakan iframe src)
+        // 2. Menampilkan Preview (dengan membuka tab baru)
         if (showPreview.checked) {
-          previewFrame.src = previewUrl; // ❗ MODIFIKASI: Setel URL Proxy ke src iframe
-          previewFrame.style.display = 'block';
-        } else {
-          previewFrame.removeAttribute('src'); // Bersihkan src
-          previewFrame.style.display = 'none';
+          window.open(previewUrl, '_blank'); // ❗ MODIFIKASI: Buka URL Proxy di tab baru
+          status.textContent += ' | Preview dibuka di tab baru.';
         }
 
       } catch (err) {
         status.textContent = 'Error: ' + err.message + '. (Pastikan Proxy dipilih untuk mengatasi CORS.)';
         codeBlock.textContent = '';
-        previewFrame.removeAttribute('src');
-        previewFrame.style.display = 'none';
         hideCodeActions();
       }
     }
     
     // --- FUNGSI INISIALISASI STARTUP ---
     function initializeAndFetch() {
-        // Panggil fetchSource dengan nilai default
         fetchSource(urlInput.value.trim());
     }
 
@@ -242,4 +223,4 @@
     });
   </script>
 </body>
-    </html>
+          </html>

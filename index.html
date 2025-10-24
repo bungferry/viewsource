@@ -6,7 +6,7 @@
   <title>View Source - Fix Proxy Statis</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
+
   <style>
     body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
     .container {max-width: 900px; margin: 20px auto; padding: 15px;}
@@ -17,21 +17,21 @@
     button:hover {background: #2ea043;}
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
-    
+
     .code-container {
         position: relative;
         margin-bottom: 10px;
     }
     pre {
-        background: #161b22; 
-        padding: 15px; 
-        border-radius: 6px; 
+        background: #161b22;
+        padding: 15px;
+        border-radius: 6px;
         overflow-x: auto;
         margin: 0;
         min-height: 200px;
         padding-top: 40px;
     }
-    
+
     .code-actions {
         position: absolute;
         top: 8px;
@@ -70,22 +70,22 @@
       <button id="viewBtn">View Source</button>
     </div>
     <div class="options">
-      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis (Simulasi GitHub)</label> 
+      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis (Simulasi GitHub)</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
       <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label>
     </div>
     <div id="status"></div>
-    
+
     <div class="code-container">
-        <div class="code-actions" id="codeActions"> 
+        <div class="code-actions" id="codeActions">
             <button id="copyBtn" onclick="copyCode()"><i class="fas fa-copy"></i> Salin</button>
             <button id="downloadBtn" onclick="downloadCode()"><i class="fas fa-download"></i> Unduh</button>
         </div>
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
-    
+
   </div>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script>
@@ -97,14 +97,9 @@
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
     const codeActions = document.getElementById('codeActions');
-    
-    const DEFAULT_URL = 'https://example.com'; 
-    
-    // ❗ MODIFIKASI: URL yang terlihat seperti statis (simulasi)
-    const PROXY_BASE_URL_SIMULATION = 'https://bungferry.github.io/my-proxy/?url='; 
-    // Proxy yang berfungsi untuk FETCH Teks Mentah (Cadangan)
+
+    const DEFAULT_URL = 'https://example.com';
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
-    
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
     // --- FUNGSI UTILITY TOMBOL ---
@@ -120,7 +115,7 @@
     function hideCodeActions() {
         codeActions.classList.remove('active');
     }
-    
+
     function copyCode() {
         const codeText = codeBlock.textContent;
         navigator.clipboard.writeText(codeText).then(() => {
@@ -145,7 +140,7 @@
         } catch (e) {
             fileName = 'source.html';
         }
-        
+
         const blob = new Blob([codeText], { type: 'text/html' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -154,7 +149,7 @@
         link.click();
         document.body.removeChild(link);
     }
-    
+
     window.copyCode = copyCode;
     window.downloadCode = downloadCode;
 
@@ -163,63 +158,71 @@
     async function fetchSource(url) {
       codeBlock.textContent = '';
       hideCodeActions();
-      
+
       let finalFetchUrl = url;
-      let finalPreviewUrl = url;
-      let useFallbackForFetch = false;
+      let usedProxyInfo = 'langsung';
 
-      // 1. Tentukan URL Fetch dan Preview
+      // 1. Tentukan URL Fetch
       if (useProxy.checked) {
-          // Gunakan URL statis yang disimulasikan untuk Preview
-          finalPreviewUrl = PROXY_BASE_URL_SIMULATION + encodeURIComponent(url);
-          
-          // Gunakan fallback proxy yang sudah teruji untuk FETCH TEXT agar berhasil
           finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
-          useFallbackForFetch = true;
-
+          usedProxyInfo = 'proxy allorigins.win';
       } else if (useLocalProxy.checked) {
           finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
-          finalPreviewUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
+          usedProxyInfo = 'proxy lokal';
       }
-      
+
       // 2. Proses Fetch dan Formatting Kode Sumber
       try {
-        status.textContent = `Mengambil kode sumber dari ${url}...`;
-        if(useFallbackForFetch) {
-            status.textContent += ` (Menggunakan proxy teks cadangan: ${FALLBACK_FETCH_PROXY})`;
-        }
-        
+        status.textContent = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
+
         const res = await fetch(finalFetchUrl);
-        if (!res.ok) throw new Error('Gagal memuat kode: ' + res.status);
+        if (!res.ok) throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
         const html = await res.text();
         status.textContent = `Berhasil dimuat. Sumber: ${url}`;
-        
-        const formattedHtml = html_beautify(html, { 
-            indent_size: 2, 
+
+        const formattedHtml = html_beautify(html, {
+            indent_size: 2,
             space_in_empty_paren: true,
             end_with_newline: true
         });
 
         codeBlock.textContent = formattedHtml;
-        hljs.highlightElement(codeBlock); 
-        
-        showCodeActions(url); 
+        hljs.highlightElement(codeBlock);
 
-        // 3. Menampilkan Preview (dengan membuka tab baru)
+        showCodeActions(url);
+
+        // 3. Menampilkan Preview (dengan metode Blob URL)
         if (showPreview.checked) {
-          // Buka URL yang terlihat statis di tab baru
-          window.open(finalPreviewUrl, '_blank'); 
-          status.textContent += ` | Preview dibuka via: ${finalPreviewUrl}`;
+            // Buat tag <base> untuk memperbaiki path relatif (CSS, gambar, JS)
+            const baseTag = `<base href="${url}">`;
+            
+            // Sisipkan tag <base> setelah tag <head> untuk memastikan semua aset dimuat dengan benar
+            // Menggunakan regex agar lebih fleksibel (menangani <head> atau <head attr="...">)
+            const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
+
+            // Buat Blob (file virtual di memori browser) dari kode HTML
+            const blob = new Blob([htmlWithBase], { type: 'text/html' });
+
+            // Buat URL lokal yang menunjuk ke Blob tersebut
+            const previewBlobUrl = URL.createObjectURL(blob);
+
+            // Buka URL lokal tersebut di tab baru
+            window.open(previewBlobUrl, '_blank');
+            
+            status.textContent += ` | Preview lokal dibuat di tab baru.`;
+            
+            // Opsional: Hapus URL objek setelah tab baru terbuka untuk menghemat memori
+            // Namun, kadang ini bisa terlalu cepat, jadi biarkan browser menanganinya saat tab ditutup.
+            // setTimeout(() => URL.revokeObjectURL(previewBlobUrl), 100);
         }
 
       } catch (err) {
-        // Tampilkan pesan error yang lebih jelas
-        status.textContent = `Error: ${err.message}. Gagal Fetch! (Pastikan URL ${finalPreviewUrl} adalah layanan proxy yang aktif)`;
-        codeBlock.textContent = '';
+        status.textContent = `Error: ${err.message}. Gagal mengambil sumber dari ${url}`;
+        codeBlock.textContent = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
         hideCodeActions();
       }
     }
-    
+
     // --- FUNGSI INISIALISASI STARTUP ---
     function initializeAndFetch() {
         fetchSource(urlInput.value.trim());
@@ -227,9 +230,12 @@
 
     viewBtn.addEventListener('click', () => {
       const url = urlInput.value.trim();
-      if (!url) return status.textContent = 'Masukkan URL valid.';
+      if (!url) {
+        status.textContent = 'Masukkan URL yang valid.';
+        return;
+      }
       fetchSource(url);
     });
   </script>
 </body>
-                       </html>
+                                                                             </html>

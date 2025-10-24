@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Diperbaiki dengan Pengalihan</title>
+  <title>View Source - PREVIEW ASLI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <style>
     body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
@@ -16,7 +16,15 @@
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
     pre {background: #161b22; padding: 10px; border-radius: 6px; overflow-x: auto;}
-    /* Hapus gaya preview lama yang tidak lagi digunakan */
+    
+    /* Gaya untuk Iframe Preview */
+    #previewFrame {
+        margin-top: 15px;
+        border-radius: 6px;
+        background: #fff; /* Pastikan background-nya putih agar konten terlihat */
+        border: 2px solid #58a6ff; /* Border biru untuk membedakan */
+    }
+
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
@@ -31,12 +39,14 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Alihkan ke Preview Error</label>
+      <label><input type="checkbox" id="showPreview"> Tampilkan Preview Asli</label>
     </div>
     <div id="status"></div>
     <pre><code id="codeBlock" class="html"></code></pre>
-    </div>
-
+    
+    <iframe id="previewFrame" width="100%" height="400px" style="display: none;"></iframe>
+  </div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script>
@@ -47,11 +57,13 @@
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
-    
-    // URL Pengalihan untuk Preview yang Rusak/Gagal
-    const FAILED_PREVIEW_URL = 'https://bungferry.github.io/gshjsiiwo6789ppppnqnk';
+    // Ambil elemen Iframe baru
+    const previewFrame = document.getElementById('previewFrame');
 
     async function fetchSource(url) {
+      // Sembunyikan iframe setiap kali fetch dimulai
+      previewFrame.style.display = 'none';
+      
       try {
         let fetchUrl = url;
         // Penentuan URL Proxy
@@ -75,16 +87,23 @@
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
 
-        // 2. Pengalihan Preview Gagal/Rusak
+        // 2. Menampilkan Preview yang Benar Menggunakan IFRAME
         if (showPreview.checked) {
-          // Buka URL yang ditentukan di tab baru
-          window.open(FAILED_PREVIEW_URL, '_blank');
-          status.textContent += ' | Preview dialihkan ke URL error.';
+          previewFrame.style.display = 'block';
+          
+          // Tulis konten HTML ke dalam dokumen iframe
+          const doc = previewFrame.contentWindow.document;
+          doc.open();
+          doc.write(html);
+          doc.close();
+        } else {
+          previewFrame.style.display = 'none';
         }
 
       } catch (err) {
-        status.textContent = 'Error: ' + err.message;
+        status.textContent = 'Error: ' + err.message + '. (Pastikan CORS atau Proxy berfungsi.)';
         codeBlock.textContent = '';
+        previewFrame.style.display = 'none';
       }
     }
 
@@ -95,4 +114,4 @@
     });
   </script>
 </body>
-  </html>
+                                                                                   </html>

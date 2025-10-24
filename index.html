@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Tanpa Iframe Preview</title>
+  <title>View Source - Fix Proxy Statis</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -18,7 +18,6 @@
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
     
-    /* Gaya untuk Kontainer dan Pre */
     .code-container {
         position: relative;
         margin-bottom: 10px;
@@ -33,7 +32,6 @@
         padding-top: 40px;
     }
     
-    /* Gaya untuk Tombol Salin/Unduh */
     .code-actions {
         position: absolute;
         top: 8px;
@@ -72,7 +70,7 @@
       <button id="viewBtn">View Source</button>
     </div>
     <div class="options">
-      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Publik</label> 
+      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis (Simulasi GitHub)</label> 
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
       <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label>
     </div>
@@ -101,8 +99,12 @@
     const codeActions = document.getElementById('codeActions');
     
     const DEFAULT_URL = 'https://example.com'; 
-    // ❗ PROXY BARU: Diganti ke yang mungkin lebih stabil
-    const PROXY_BASE_URL = 'https://corsproxy.io/?'; 
+    
+    // ❗ MODIFIKASI: URL yang terlihat seperti statis (simulasi)
+    const PROXY_BASE_URL_SIMULATION = 'https://bungferry.github.io/my-proxy/?url='; 
+    // Proxy yang berfungsi untuk FETCH Teks Mentah (Cadangan)
+    const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
+    
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
     // --- FUNGSI UTILITY TOMBOL ---
@@ -162,28 +164,32 @@
       codeBlock.textContent = '';
       hideCodeActions();
       
-      let fetchUrl = url;
-      let previewUrl = url;
-      
-      // Tentukan URL untuk fetching kode sumber
+      let finalFetchUrl = url;
+      let finalPreviewUrl = url;
+      let useFallbackForFetch = false;
+
+      // 1. Tentukan URL Fetch dan Preview
       if (useProxy.checked) {
-          fetchUrl = PROXY_BASE_URL + encodeURIComponent(url);
+          // Gunakan URL statis yang disimulasikan untuk Preview
+          finalPreviewUrl = PROXY_BASE_URL_SIMULATION + encodeURIComponent(url);
+          
+          // Gunakan fallback proxy yang sudah teruji untuk FETCH TEXT agar berhasil
+          finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
+          useFallbackForFetch = true;
+
       } else if (useLocalProxy.checked) {
-          fetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
+          finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
+          finalPreviewUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
       }
       
-      // Tentukan URL untuk preview
-      if (useProxy.checked) {
-          previewUrl = PROXY_BASE_URL + encodeURIComponent(url);
-      } else if (useLocalProxy.checked) {
-          previewUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
-      }
-      
-      // 1. Proses Fetch dan Formatting Kode Sumber
+      // 2. Proses Fetch dan Formatting Kode Sumber
       try {
         status.textContent = `Mengambil kode sumber dari ${url}...`;
-
-        const res = await fetch(fetchUrl);
+        if(useFallbackForFetch) {
+            status.textContent += ` (Menggunakan proxy teks cadangan: ${FALLBACK_FETCH_PROXY})`;
+        }
+        
+        const res = await fetch(finalFetchUrl);
         if (!res.ok) throw new Error('Gagal memuat kode: ' + res.status);
         const html = await res.text();
         status.textContent = `Berhasil dimuat. Sumber: ${url}`;
@@ -199,15 +205,16 @@
         
         showCodeActions(url); 
 
-        // 2. Menampilkan Preview (dengan membuka tab baru)
+        // 3. Menampilkan Preview (dengan membuka tab baru)
         if (showPreview.checked) {
-          window.open(previewUrl, '_blank'); // Buka URL Proxy di tab baru
-          status.textContent += ' | Preview dibuka di tab baru.';
+          // Buka URL yang terlihat statis di tab baru
+          window.open(finalPreviewUrl, '_blank'); 
+          status.textContent += ` | Preview dibuka via: ${finalPreviewUrl}`;
         }
 
       } catch (err) {
-        // Tampilkan pesan error yang lebih spesifik
-        status.textContent = `Error: ${err.message}. (Kemungkinan server proxy error, coba proxy lain atau gunakan proxy lokal.)`;
+        // Tampilkan pesan error yang lebih jelas
+        status.textContent = `Error: ${err.message}. Gagal Fetch! (Pastikan URL ${finalPreviewUrl} adalah layanan proxy yang aktif)`;
         codeBlock.textContent = '';
         hideCodeActions();
       }
@@ -225,4 +232,4 @@
     });
   </script>
 </body>
-  </html>
+                       </html>

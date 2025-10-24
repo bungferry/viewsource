@@ -74,7 +74,8 @@
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
 </head>
-<body onload="initializeAndFetch()"> <div class="container">
+<body onload="initializeAndFetch()">
+  <div class="container">
     <h1>View Source Profesional</h1>
     <div class="controls">
       <input type="text" id="urlInput" placeholder="https://example.com" value="https://example.com" />
@@ -112,11 +113,12 @@
     const codeActions = document.getElementById('codeActions');
     
     const DEFAULT_URL = 'https://example.com'; 
+    const PROXY_BASE_URL = 'https://api.allorigins.win/raw?url=';
+    const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
     // --- FUNGSI UTILITY TOMBOL ---
 
     function showCodeActions(url) {
-        // Hanya tampilkan tombol jika URL BUKAN example.com
         if (url.trim() !== DEFAULT_URL) {
             codeActions.classList.add('active');
         } else {
@@ -172,20 +174,32 @@
       codeBlock.textContent = '';
       hideCodeActions();
       
+      let fetchUrl = url;
+      let previewUrl = url;
+      
+      // Tentukan URL untuk *fetching* (mengambil kode sumber yang diformat)
+      if (useProxy.checked) {
+          fetchUrl = PROXY_BASE_URL + encodeURIComponent(url);
+      } else if (useLocalProxy.checked) {
+          fetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
+      }
+      
+      // Tentukan URL untuk *preview* (menggunakan proxy di iframe src)
+      if (useProxy.checked) {
+          previewUrl = PROXY_BASE_URL + encodeURIComponent(url);
+      } else if (useLocalProxy.checked) {
+          previewUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
+      }
+      
+      // 1. Proses Fetch dan Formatting Kode Sumber
       try {
-        let fetchUrl = url;
-        // Penentuan URL Proxy
-        if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-        if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
-        
-        status.textContent = `Mengambil sumber dari ${url}...`;
+        status.textContent = `Mengambil kode sumber dari ${url}...`;
 
         const res = await fetch(fetchUrl);
-        if (!res.ok) throw new Error('Gagal memuat: ' + res.status);
+        if (!res.ok) throw new Error('Gagal memuat kode: ' + res.status);
         const html = await res.text();
         status.textContent = `Berhasil dimuat. Sumber: ${url}`;
         
-        // 1. Pemformatan HTML (Kode Menurun)
         const formattedHtml = html_beautify(html, { 
             indent_size: 2, 
             space_in_empty_paren: true,
@@ -195,26 +209,21 @@
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
         
-        // Tampilkan tombol berdasarkan URL yang sedang dilihat
         showCodeActions(url); 
 
-        // 2. Menampilkan Preview
+        // 2. Menampilkan Preview (menggunakan iframe src)
         if (showPreview.checked) {
+          previewFrame.src = previewUrl; // ❗ MODIFIKASI: Setel URL Proxy ke src iframe
           previewFrame.style.display = 'block';
-          
-          const doc = previewFrame.contentWindow.document;
-          doc.open();
-          // Catatan: Preview ini mungkin tetap gagal untuk resource (CSS/JS) internal
-          // jika proxy hanya mengambil HTML mentah tanpa mengizinkan resource lain.
-          doc.write(html);
-          doc.close();
         } else {
+          previewFrame.removeAttribute('src'); // Bersihkan src
           previewFrame.style.display = 'none';
         }
 
       } catch (err) {
-        status.textContent = 'Error: ' + err.message + '. Gagal fetch. (Pastikan CORS teratasi dengan menggunakan Proxy.)';
+        status.textContent = 'Error: ' + err.message + '. (Pastikan Proxy dipilih untuk mengatasi CORS.)';
         codeBlock.textContent = '';
+        previewFrame.removeAttribute('src');
         previewFrame.style.display = 'none';
         hideCodeActions();
       }
@@ -233,4 +242,4 @@
     });
   </script>
 </body>
-      </html>
+  </html>

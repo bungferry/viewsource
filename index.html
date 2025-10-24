@@ -222,7 +222,7 @@ app.listen(PORT, ()=> console.log('Proxy listening on port', PORT));
 
     el('copyBtn').addEventListener('click', ()=>{
       if (!window._lastFetched) return status.textContent = 'Nothing to copy.';
-      navigator.clipboard.writeText(window._lastFetched.html).then(()=> status.textContent = 'Copied to clipboard.');
+      navigator.clipboard.writeText(window._lastFetched.html).t()=> status.textContent = 'Copied to clipboard.');
     });
 
     el('downloadBtn').addEventListener('click', ()=>{

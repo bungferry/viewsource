@@ -30,7 +30,7 @@
         overflow-x: auto;
         margin: 0;
         min-height: 200px;
-        padding-top: 40px; /* Tambahkan ruang untuk tombol/header */
+        padding-top: 40px;
     }
     
     /* Gaya untuk Tombol Salin/Unduh */
@@ -38,12 +38,12 @@
         position: absolute;
         top: 8px;
         right: 8px;
-        display: none; /* Sembunyikan secara default */
+        display: none;
         gap: 5px;
         z-index: 10;
     }
     .code-actions.active {
-        display: flex; /* Tampilkan saat class 'active' ditambahkan */
+        display: flex;
     }
     .code-actions button {
         background: #30363d;
@@ -74,15 +74,14 @@
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
 </head>
-<body onload="fetchSource(urlInput.value.trim())"> 
-  <div class="container">
+<body onload="initializeAndFetch()"> <div class="container">
     <h1>View Source Profesional</h1>
     <div class="controls">
       <input type="text" id="urlInput" placeholder="https://example.com" value="https://example.com" />
       <button id="viewBtn">View Source</button>
     </div>
     <div class="options">
-      <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
+      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Publik</label> 
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
       <label><input type="checkbox" id="showPreview"> Tampilkan Preview Asli</label>
     </div>
@@ -112,13 +111,12 @@
     const previewFrame = document.getElementById('previewFrame');
     const codeActions = document.getElementById('codeActions');
     
-    // URL yang tombolnya harus disembunyikan
     const DEFAULT_URL = 'https://example.com'; 
 
     // --- FUNGSI UTILITY TOMBOL ---
 
     function showCodeActions(url) {
-        // ❗ MODIFIKASI: Hanya tampilkan tombol jika URL BUKAN example.com
+        // Hanya tampilkan tombol jika URL BUKAN example.com
         if (url.trim() !== DEFAULT_URL) {
             codeActions.classList.add('active');
         } else {
@@ -176,6 +174,7 @@
       
       try {
         let fetchUrl = url;
+        // Penentuan URL Proxy
         if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
         if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
         
@@ -196,7 +195,7 @@
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
         
-        // ❗ MODIFIKASI: Panggil showCodeActions dengan URL untuk cek kondisi
+        // Tampilkan tombol berdasarkan URL yang sedang dilihat
         showCodeActions(url); 
 
         // 2. Menampilkan Preview
@@ -205,6 +204,8 @@
           
           const doc = previewFrame.contentWindow.document;
           doc.open();
+          // Catatan: Preview ini mungkin tetap gagal untuk resource (CSS/JS) internal
+          // jika proxy hanya mengambil HTML mentah tanpa mengizinkan resource lain.
           doc.write(html);
           doc.close();
         } else {
@@ -212,11 +213,17 @@
         }
 
       } catch (err) {
-        status.textContent = 'Error: ' + err.message + '. (Pastikan CORS atau Proxy berfungsi.)';
+        status.textContent = 'Error: ' + err.message + '. Gagal fetch. (Pastikan CORS teratasi dengan menggunakan Proxy.)';
         codeBlock.textContent = '';
         previewFrame.style.display = 'none';
         hideCodeActions();
       }
+    }
+    
+    // --- FUNGSI INISIALISASI STARTUP ---
+    function initializeAndFetch() {
+        // Panggil fetchSource dengan nilai default
+        fetchSource(urlInput.value.trim());
     }
 
     viewBtn.addEventListener('click', () => {
@@ -226,4 +233,4 @@
     });
   </script>
 </body>
-  </html>
+      </html>

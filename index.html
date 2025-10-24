@@ -74,7 +74,8 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Publik</label> 
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label> </div>
+      <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label>
+    </div>
     <div id="status"></div>
     
     <div class="code-container">
@@ -85,7 +86,7 @@
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
     
-    </div>
+  </div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
@@ -97,11 +98,11 @@
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
-    // const previewFrame = document.getElementById('previewFrame'); // ❗ DIHAPUS
     const codeActions = document.getElementById('codeActions');
     
     const DEFAULT_URL = 'https://example.com'; 
-    const PROXY_BASE_URL = 'https://api.allorigins.win/raw?url=';
+    // ❗ PROXY BARU: Diganti ke yang mungkin lebih stabil
+    const PROXY_BASE_URL = 'https://corsproxy.io/?'; 
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
     // --- FUNGSI UTILITY TOMBOL ---
@@ -164,14 +165,14 @@
       let fetchUrl = url;
       let previewUrl = url;
       
-      // Tentukan URL untuk fetching kode sumber yang diformat
+      // Tentukan URL untuk fetching kode sumber
       if (useProxy.checked) {
           fetchUrl = PROXY_BASE_URL + encodeURIComponent(url);
       } else if (useLocalProxy.checked) {
           fetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
       }
       
-      // Tentukan URL untuk preview (dibuka di tab baru)
+      // Tentukan URL untuk preview
       if (useProxy.checked) {
           previewUrl = PROXY_BASE_URL + encodeURIComponent(url);
       } else if (useLocalProxy.checked) {
@@ -200,12 +201,13 @@
 
         // 2. Menampilkan Preview (dengan membuka tab baru)
         if (showPreview.checked) {
-          window.open(previewUrl, '_blank'); // ❗ MODIFIKASI: Buka URL Proxy di tab baru
+          window.open(previewUrl, '_blank'); // Buka URL Proxy di tab baru
           status.textContent += ' | Preview dibuka di tab baru.';
         }
 
       } catch (err) {
-        status.textContent = 'Error: ' + err.message + '. (Pastikan Proxy dipilih untuk mengatasi CORS.)';
+        // Tampilkan pesan error yang lebih spesifik
+        status.textContent = `Error: ${err.message}. (Kemungkinan server proxy error, coba proxy lain atau gunakan proxy lokal.)`;
         codeBlock.textContent = '';
         hideCodeActions();
       }
@@ -223,4 +225,4 @@
     });
   </script>
 </body>
-          </html>
+               </html>

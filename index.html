@@ -20,7 +20,7 @@
 
     .code-container {
         position: relative;
-        margin-bottom: 10px; 
+        margin-bottom: 10px;
     }
     pre {
         background: #161b22;
@@ -31,6 +31,7 @@
         min-height: 200px;
         padding-top: 40px;
     }
+    /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
     pre code.hljs {
         padding-left: 10px !important;
     }
@@ -65,9 +66,10 @@
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
 
+    /* --- CSS UNTUK LINE NUMBERS (DITAMBAHKAN) --- */
     .hljs-ln-numbers {
         text-align: right;
-        color: #8b949e;
+        color: #8b949e; /* Warna abu-abu yang tidak mencolok */
         border-right: 1px solid #30363d;
         padding-right: 12px !important;
         -webkit-user-select: none;
@@ -100,10 +102,12 @@
         </div>
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
+
   </div>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
+  <!-- SCRIPT PLUGIN LINE NUMBER (DITAMBAHKAN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     const urlInput = document.getElementById('urlInput');
@@ -190,7 +194,10 @@
 
         codeBlock.textContent = formattedHtml;
         
+        // Lakukan highlighting terlebih dahulu
         hljs.highlightElement(codeBlock);
+        
+        // PANGGIL PLUGIN LINE NUMBERS SETELAH HIGHLIGHTING (DITAMBAHKAN)
         hljs.lineNumbersBlock(codeBlock);
 
         showCodeActions(url);
@@ -222,11 +229,6 @@
       }
       fetchSource(url);
     });
-    
-    // JAVASCRIPT UNTUK TAHUN DINAMIS (DITAMBAHKAN)
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-    });
   </script>
 </body>
-        </html>
+    </html>

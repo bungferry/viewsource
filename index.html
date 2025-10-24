@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Diperbaiki</title>
+  <title>View Source - Diperbaiki dengan Pengalihan</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <style>
     body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
@@ -15,41 +15,8 @@
     button:hover {background: #2ea043;}
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
-    /* Gaya untuk blok kode */
     pre {background: #161b22; padding: 10px; border-radius: 6px; overflow-x: auto;}
-    
-    /* MODIFIKASI: Gaya untuk Preview Modal Gagal */
-    #preview-modal {
-      position: fixed; /* Membuatnya terlihat seperti modal */
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8); /* Background gelap transparan */
-      display: none; /* Awalnya disembunyikan */
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #preview-content {
-      background: #280a0a; /* Warna latar belakang gelap kemerahan untuk error */
-      border: 3px solid #ff4d4d; /* Border merah terang */
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
-      max-width: 80%;
-      color: #ffcccc; /* Warna teks pudar */
-    }
-    #preview-content h2 {
-      color: #ff4d4d;
-      margin-top: 0;
-    }
-    #preview-content p {
-      margin-bottom: 0;
-    }
-    /* Akhir MODIFIKASI */
-
+    /* Hapus gaya preview lama yang tidak lagi digunakan */
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
@@ -64,21 +31,12 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Tampilkan Preview Rusak</label>
+      <label><input type="checkbox" id="showPreview"> Alihkan ke Preview Error</label>
     </div>
     <div id="status"></div>
     <pre><code id="codeBlock" class="html"></code></pre>
-  </div>
-  
-  <div id="preview-modal">
-    <div id="preview-content">
-      <h2>❌ Gagal Memuat Preview</h2>
-      <p>Akses ke konten eksternal diblokir atau terjadi kegagalan rendering.</p>
-      <p>Kode sumber mentah mungkin bermasalah atau melanggar kebijakan keamanan (CORS).</p>
-      <p>Tekan tombol ESC atau klik di luar kotak ini untuk menutup.</p>
-      <div id="actual-preview-content" style="display: none;"></div>
     </div>
-  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script>
@@ -86,79 +44,47 @@
     const codeBlock = document.getElementById('codeBlock');
     const viewBtn = document.getElementById('viewBtn');
     const status = document.getElementById('status');
-    // MODIFIKASI: Ambil elemen modal baru
-    const previewModal = document.getElementById('preview-modal');
-    const actualPreviewContent = document.getElementById('actual-preview-content');
-    const previewContent = document.getElementById('preview-content');
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
-
-    // Fungsi untuk menutup modal
-    function closePreviewModal() {
-      previewModal.style.display = 'none';
-      // Hapus event listener sementara agar tidak tumpang tindih
-      document.removeEventListener('keydown', handleEscapeKey);
-      previewModal.removeEventListener('click', handleOutsideClick);
-    }
-
-    // Handler untuk tombol ESC
-    function handleEscapeKey(event) {
-      if (event.key === 'Escape') {
-        closePreviewModal();
-      }
-    }
     
-    // Handler untuk klik di luar konten modal
-    function handleOutsideClick(event) {
-      if (event.target === previewModal) {
-        closePreviewModal();
-      }
-    }
+    // URL Pengalihan untuk Preview yang Rusak/Gagal
+    const FAILED_PREVIEW_URL = 'https://bungferry.github.io/gshjsiiwo6789ppppnqnk';
 
     async function fetchSource(url) {
       try {
         let fetchUrl = url;
+        // Penentuan URL Proxy
         if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
         if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
-        status.textContent = 'Mengambil sumber...';
         
-        // Sembunyikan modal jika sedang tampil
-        closePreviewModal();
+        status.textContent = 'Mengambil sumber...';
 
         const res = await fetch(fetchUrl);
         if (!res.ok) throw new Error('Gagal memuat: ' + res.status);
         const html = await res.text();
         status.textContent = 'Berhasil dimuat.';
         
-        // MODIFIKASI: Format HTML menggunakan js_beautify.html_beautify
+        // 1. Pemformatan HTML (Kode Menurun)
         const formattedHtml = html_beautify(html, { 
             indent_size: 2, 
             space_in_empty_paren: true,
             end_with_newline: true
         });
 
-        // Tampilkan kode yang sudah terformat
         codeBlock.textContent = formattedHtml;
-        hljs.highlightElement(codeBlock); // Highlight kode yang sudah terformat
+        hljs.highlightElement(codeBlock); 
 
+        // 2. Pengalihan Preview Gagal/Rusak
         if (showPreview.checked) {
-          // Masukkan HTML ke div tersembunyi (seolah-olah dicoba render)
-          actualPreviewContent.innerHTML = html; 
-          
-          // Tampilkan modal yang rusak
-          previewModal.style.display = 'flex';
-          
-          // Tambahkan event listener untuk menutup modal
-          document.addEventListener('keydown', handleEscapeKey);
-          previewModal.addEventListener('click', handleOutsideClick);
+          // Buka URL yang ditentukan di tab baru
+          window.open(FAILED_PREVIEW_URL, '_blank');
+          status.textContent += ' | Preview dialihkan ke URL error.';
         }
 
       } catch (err) {
         status.textContent = 'Error: ' + err.message;
-        // Bersihkan blok kode jika terjadi error
         codeBlock.textContent = '';
-        closePreviewModal();
       }
     }
 

@@ -1,270 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>View Source — Local Clone</title>
-  <!-- highlight.js for syntax highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View Source - Sederhana</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#60a5fa}
-    *{box-sizing:border-box}
-    body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto;margin:0;background:linear-gradient(180deg,#071020 0%, #0b1220 100%);color:#e6eef8}
-    .wrap{max-width:1100px;margin:28px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center}
-    h1{font-size:20px;margin:0}
-    .controls{display:flex;gap:8px;margin-top:12px}
-    input[type=text]{padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:inherit;min-width:420px}
-    button{background:var(--accent);border:none;color:#022; padding:10px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-    .opts{margin-left:8px;display:flex;gap:8px;align-items:center}
-    .card{background:rgba(255,255,255,0.02);padding:14px;border-radius:12px;margin-top:16px;border:1px solid rgba(255,255,255,0.03)}
-    .row{display:flex;gap:12px}
-    pre{overflow:auto;max-height:60vh;padding:12px;border-radius:8px}
-    .actions{display:flex;gap:8px;margin-top:8px}
-    .assets{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .asset{background:rgba(255,255,255,0.03);padding:8px;border-radius:8px;font-size:13px}
-    label{font-size:13px;color:var(--muted)}
-    .small{font-size:13px;color:var(--muted)}
-    .error{color:#ffb4b4}
-    .success{color:#b2f5c4}
-    .input-toggle{display:flex;gap:8px;align-items:center}
-    @media (max-width:720px){input[type=text]{min-width:120px;width:60vw}}
+    body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
+    .container {max-width: 900px; margin: 20px auto; padding: 15px;}
+    h1 {font-size: 22px; margin-bottom: 10px;}
+    input, button {padding: 10px; border-radius: 6px; border: none; font-size: 15px;}
+    input[type=text] {flex: 1; background: #161b22; color: #e6edf3; border: 1px solid #30363d;}
+    button {background: #238636; color: white; cursor: pointer;}
+    button:hover {background: #2ea043;}
+    .controls {display: flex; gap: 8px; margin-bottom: 10px;}
+    .options {margin-bottom: 15px;}
+    pre {background: #161b22; padding: 10px; border-radius: 6px; overflow-x: auto;}
+    #preview {background: #fff; color: #000; padding: 10px; margin-top: 10px; border-radius: 6px; display:none;}
+    label {font-size: 14px; margin-right: 10px;}
+    #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>View Source — Clone</h1>
-        <div class="small">Masukkan URL (https://...) lalu klik <strong>View Source</strong>. Ada opsi proxy jika CORS menghalangi.</div>
-      </div>
-    </header>
-
-    <div class="card">
-      <div class="controls">
-        <input id="urlInput" type="text" placeholder="https://example.com" value="https://example.com" />
-        <button id="viewBtn">View Source</button>
-        <div class="opts">
-          <label class="input-toggle"><input id="useProxy" type="checkbox" /> Use public proxy</label>
-          <label class="input-toggle"><input id="useLocalProxy" type="checkbox" /> Use local proxy (/proxy)</label>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button id="copyBtn">Copy HTML</button>
-        <button id="downloadBtn">Download</button>
-        <button id="assetsBtn">Extract Assets</button>
-        <button id="openRawBtn">Open Raw in new tab</button>
-      </div>
-
-      <div id="status" class="small" style="margin-top:8px"></div>
-
-      <div id="result" style="margin-top:12px">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="small">Rendered Source (highlighted)</div>
-            <div class="small">Preview: <label><input type="checkbox" id="previewToggle" /> show</label></div>
-          </div>
-          <pre><code id="codeBlock" class="html"></code></pre>
-          <div id="preview" style="margin-top:12px;display:none;border-radius:8px;padding:8px;background:rgba(0,0,0,0.25);"></div>
-        </div>
-
-        <div id="assetsArea" class="card" style="display:none">
-          <div class="small">Assets found:</div>
-          <div id="assetsList" class="assets"></div>
-        </div>
-      </div>
+  <div class="container">
+    <h1>View Source Sederhana</h1>
+    <div class="controls">
+      <input type="text" id="urlInput" placeholder="https://example.com" value="https://example.com" />
+      <button id="viewBtn">View Source</button>
     </div>
-
-    <footer style="margin-top:18px;font-size:13px;color:var(--muted)">
-      Tips: Jika fetch gagal karena CORS, jalankan local proxy (lihat komentar di bawah) atau centang "Use public proxy".<br>
-      DISCLAIMER: Mengambil HTML situs lain harus mematuhi ketentuan layanan situs tersebut.
-    </footer>
-
-    <!-- optional small credits -->
-    <div style="margin-top:18px;color:var(--muted);font-size:12px">Built with ❤️ — single-file demo. Includes optional Node.js proxy snippet below.</div>
-
-    <details style="margin-top:12px;color:var(--muted);background:rgba(255,255,255,0.01);padding:12px;border-radius:8px">
-      <summary>Debug / Developer: Node.js proxy (optional)</summary>
-      <pre style="white-space:pre-wrap;max-height:360px;overflow:auto;padding:8px;background:rgba(0,0,0,0.25);border-radius:8px;margin-top:8px;color:#dbeafe">
-// server.js
-const express = require('express');
-const fetch = require('node-fetch');
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Simple proxy: GET /proxy?url=https://example.com
-app.get('/proxy', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).send('Missing url parameter');
-  try {
-    const r = await fetch(url, { method: 'GET', headers: { 'User-Agent': 'ViewSource-Proxy/1.0' } });
-    const text = await r.text();
-    res.set('Content-Type', 'text/html; charset=utf-8');
-    res.send(text);
-  } catch (err) {
-    res.status(500).send('Proxy error: ' + String(err));
-  }
-});
-
-app.listen(PORT, ()=> console.log('Proxy listening on port', PORT));
-      </pre>
-      <div class="small">Run: <code>node server.js</code>. Then check <code>http://localhost:3000/proxy?url=...</code> in the tool by enabling "Use local proxy".</div>
-    </details>
-
+    <div class="options">
+      <label><input type="checkbox" id="useProxy"> Gunakan Proxy Publik</label>
+      <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
+      <label><input type="checkbox" id="showPreview"> Tampilkan Preview</label>
+    </div>
+    <div id="status"></div>
+    <pre><code id="codeBlock" class="html"></code></pre>
+    <div id="preview"></div>
   </div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script>
-    // Helper functions
-    const el = id => document.getElementById(id);
-    const status = el('status');
-    const codeBlock = el('codeBlock');
-    const preview = el('preview');
-    const assetsArea = el('assetsArea');
-    const assetsList = el('assetsList');
+    const urlInput = document.getElementById('urlInput');
+    const codeBlock = document.getElementById('codeBlock');
+    const viewBtn = document.getElementById('viewBtn');
+    const status = document.getElementById('status');
+    const preview = document.getElementById('preview');
+    const useProxy = document.getElementById('useProxy');
+    const useLocalProxy = document.getElementById('useLocalProxy');
+    const showPreview = document.getElementById('showPreview');
 
-    function safeEncodeUrl(u){
-      try { return encodeURIComponent(u); } catch(e){ return u; }
-    }
-
-    async function fetchWithProxyChoices(url, usePublicProxy, useLocalProxy){
-      // Try direct fetch first
-      try{
-        const r = await fetch(url, {method:'GET'});
-        if (!r.ok) throw new Error('HTTP '+r.status);
-        const txt = await r.text();
-        return {html: txt, finalUrl: r.url};
-      }catch(err){
-        // If direct fails (likely CORS), try public proxy
-        if (usePublicProxy){
-          try{
-            status.textContent = 'Trying public proxy (allorigins)...';
-            const proxy = 'https://api.allorigins.win/raw?url=' + safeEncodeUrl(url);
-            const r2 = await fetch(proxy);
-            if (!r2.ok) throw new Error('Proxy HTTP '+r2.status);
-            const txt2 = await r2.text();
-            return {html: txt2, finalUrl: proxy};
-          }catch(e2){
-            console.warn('public proxy failed', e2);
-          }
+    async function fetchSource(url) {
+      try {
+        let fetchUrl = url;
+        if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+        if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
+        status.textContent = 'Mengambil sumber...';
+        const res = await fetch(fetchUrl);
+        if (!res.ok) throw new Error('Gagal memuat: ' + res.status);
+        const html = await res.text();
+        status.textContent = 'Berhasil dimuat.';
+        codeBlock.textContent = html;
+        hljs.highlightElement(codeBlock);
+        if (showPreview.checked) {
+          preview.innerHTML = html;
+          preview.style.display = 'block';
+        } else {
+          preview.style.display = 'none';
         }
-        if (useLocalProxy){
-          try{
-            status.textContent = 'Trying local proxy (/proxy)...';
-            const proxyLocal = '/proxy?url=' + safeEncodeUrl(url);
-            const r3 = await fetch(proxyLocal);
-            if (!r3.ok) throw new Error('Local proxy HTTP '+r3.status);
-            const txt3 = await r3.text();
-            return {html: txt3, finalUrl: proxyLocal};
-          }catch(e3){
-            console.warn('local proxy failed', e3);
-          }
-        }
-        throw err;
+      } catch (err) {
+        status.textContent = 'Error: ' + err.message;
       }
     }
 
-    function highlightHtml(html){
-      // escape and show
-      codeBlock.textContent = html;
-      hljs.highlightElement(codeBlock);
-    }
-
-    function extractAssetsFromHtml(html, baseUrl){
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const assets = [];
-      const add = (el, attr, type) => {
-        const v = el.getAttribute(attr);
-        if (v){
-          try{
-            const abs = new URL(v, baseUrl).href;
-            assets.push({type,typeRaw:type, url: abs});
-          }catch(e){
-            assets.push({type,typeRaw:type, url: v});
-          }
-        }
-      };
-      doc.querySelectorAll('img').forEach(i=>add(i,'src','image'));
-      doc.querySelectorAll('script').forEach(s=>add(s,'src','script'));
-      doc.querySelectorAll('link[rel="stylesheet"]').forEach(l=>add(l,'href','stylesheet'));
-      doc.querySelectorAll('a').forEach(a=>add(a,'href','link'));
-      return assets;
-    }
-
-    document.getElementById('viewBtn').addEventListener('click', async ()=>{
-      const url = el('urlInput').value.trim();
-      const usePublic = el('useProxy').checked;
-      const useLocal = el('useLocalProxy').checked;
-      if (!url) return status.textContent = 'Please enter a URL.';
-      status.textContent = 'Fetching...';
-      assetsArea.style.display = 'none';
-      try{
-        const res = await fetchWithProxyChoices(url, usePublic, useLocal);
-        status.textContent = 'Loaded from: ' + res.finalUrl;
-        highlightHtml(res.html);
-        preview.innerHTML = res.html;
-        el('previewToggle').checked ? preview.style.display = 'block' : preview.style.display = 'none';
-        // store last html for other actions
-        window._lastFetched = {html: res.html, url: res.finalUrl, originUrl: url};
-      }catch(err){
-        console.error(err);
-        status.innerHTML = '<span class="error">Fetch failed. CORS or network error. Try public or local proxy.</span>';
-        codeBlock.textContent = '';
-        preview.innerHTML = '';
-      }
-    });
-
-    el('previewToggle').addEventListener('change', (e)=>{
-      preview.style.display = e.target.checked ? 'block' : 'none';
-    });
-
-    el('copyBtn').addEventListener('click', ()=>{
-      if (!window._lastFetched) return status.textContent = 'Nothing to copy.';
-      navigator.clipboard.writeText(window._lastFetched.html).t()=> status.textContent = 'Copied to clipboard.');
-    });
-
-    el('downloadBtn').addEventListener('click', ()=>{
-      if (!window._lastFetched) return status.textContent = 'Nothing to download.';
-      const blob = new Blob([window._lastFetched.html], {type:'text/html'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      const filename = (new Date()).toISOString().slice(0,10).replace(/-/g,'') + '-view-source.html';
-      a.download = filename;
-      a.click();
-      status.textContent = 'Downloaded as ' + filename;
-    });
-
-    el('openRawBtn').addEventListener('click', ()=>{
-      if (!window._lastFetched) return status.textContent = 'Nothing to open.';
-      // open the source in new tab: create blob URL
-      const blob = new Blob([window._lastFetched.html], {type:'text/html'});
-      window.open(URL.createObjectURL(blob), '_blank');
-    });
-
-    el('assetsBtn').addEventListener('click', ()=>{
-      if (!window._lastFetched) return status.textContent = 'Nothing to extract.';
-      const assets = extractAssetsFromHtml(window._lastFetched.html, window._lastFetched.originUrl);
-      assetsList.innerHTML = '';
-      if (!assets.length){ assetsList.textContent = 'No assets found.'; assetsArea.style.display='block'; return; }
-      assets.forEach(a=>{
-        const d = document.createElement('div');
-        d.className = 'asset';
-        const short = a.url.length>80 ? a.url.slice(0,80)+'...' : a.url;
-        d.innerHTML = `<div style="font-weight:600;">${a.type}</div><div style="font-size:12px">${short}</div><div style="margin-top:6px"><a href="${a.url}" target="_blank">Open</a> · <a href="#" data-url="${a.url}" class="copyLink">Copy</a></div>`;
-        assetsList.appendChild(d);
-      });
-      assetsArea.style.display = 'block';
-      // attach copy handlers
-      assetsList.querySelectorAll('.copyLink').forEach(link=> link.addEventListener('click', (ev)=>{
-        ev.preventDefault(); navigator.clipboard.writeText(ev.target.dataset.url).then(()=>status.textContent = 'Asset URL copied');
-      }));
-    });
-
-    // Init highlight
-    document.addEventListener('DOMContentLoaded', ()=>{
-      hljs.configure({languages:['html','xml']});
+    viewBtn.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (!url) return status.textContent = 'Masukkan URL valid.';
+      fetchSource(url);
     });
   </script>
 </body>

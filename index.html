@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View Source - Profesional</title>
+  <title>View Source - Profesional & Fungsional</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
@@ -17,16 +18,48 @@
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
     
-    /* Gaya untuk blok kode sumber */
+    /* Gaya untuk Kontainer dan Pre */
+    .code-container {
+        position: relative;
+        margin-bottom: 10px;
+    }
     pre {
         background: #161b22; 
-        padding: 15px; /* Padding lebih besar untuk tampilan bersih */
+        padding: 15px; 
         border-radius: 6px; 
         overflow-x: auto;
-        margin-top: 10px;
-        min-height: 200px; /* Tinggi minimum agar terlihat saat dimuat */
+        margin: 0;
+        min-height: 200px;
+        padding-top: 40px; /* Tambahkan ruang untuk tombol/header */
     }
     
+    /* Gaya untuk Tombol Salin/Unduh */
+    .code-actions {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: none; /* Sembunyikan secara default */
+        gap: 5px;
+        z-index: 10;
+    }
+    .code-actions.active {
+        display: flex; /* Tampilkan saat class 'active' ditambahkan */
+    }
+    .code-actions button {
+        background: #30363d;
+        color: #c9d1d9;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: background 0.2s;
+    }
+    .code-actions button:hover {
+        background: #484f58;
+    }
+    .code-actions button i {
+        margin-right: 5px;
+    }
+
     /* Gaya untuk Iframe Preview */
     #previewFrame {
         margin-top: 15px;
@@ -41,7 +74,7 @@
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
   </style>
 </head>
-<body onload="fetchSource(urlInput.value.trim())">
+<body onload="fetchSource(urlInput.value.trim())"> 
   <div class="container">
     <h1>View Source Profesional</h1>
     <div class="controls">
@@ -53,9 +86,15 @@
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
       <label><input type="checkbox" id="showPreview"> Tampilkan Preview Asli</label>
     </div>
-    <div id="status">Memuat kode sumber default...</div>
+    <div id="status"></div>
     
-    <pre><code id="codeBlock" class="html"></code></pre>
+    <div class="code-container">
+        <div class="code-actions" id="codeActions"> 
+            <button id="copyBtn" onclick="copyCode()"><i class="fas fa-copy"></i> Salin</button>
+            <button id="downloadBtn" onclick="downloadCode()"><i class="fas fa-download"></i> Unduh</button>
+        </div>
+        <pre><code id="codeBlock" class="html"></code></pre>
+    </div>
     
     <iframe id="previewFrame" style="display: none;"></iframe>
   </div>
@@ -71,10 +110,69 @@
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
     const previewFrame = document.getElementById('previewFrame');
+    const codeActions = document.getElementById('codeActions');
+    
+    // URL yang tombolnya harus disembunyikan
+    const DEFAULT_URL = 'https://example.com'; 
+
+    // --- FUNGSI UTILITY TOMBOL ---
+
+    function showCodeActions(url) {
+        // ❗ MODIFIKASI: Hanya tampilkan tombol jika URL BUKAN example.com
+        if (url.trim() !== DEFAULT_URL) {
+            codeActions.classList.add('active');
+        } else {
+            codeActions.classList.remove('active');
+        }
+    }
+
+    function hideCodeActions() {
+        codeActions.classList.remove('active');
+    }
+    
+    function copyCode() {
+        const codeText = codeBlock.textContent;
+        navigator.clipboard.writeText(codeText).then(() => {
+            alert('Kode sumber berhasil disalin!');
+        }).catch(err => {
+            console.error('Gagal menyalin: ', err);
+            alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
+        });
+    }
+
+    function downloadCode() {
+        const codeText = codeBlock.textContent;
+        const url = urlInput.value.trim();
+        let fileName = 'source.html';
+
+        try {
+            const urlObj = new URL(url);
+            fileName = urlObj.pathname.split('/').pop() || 'source.html';
+            if (!fileName.includes('.')) {
+                fileName += '.html';
+            }
+        } catch (e) {
+            fileName = 'source.html';
+        }
+        
+        const blob = new Blob([codeText], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    window.copyCode = copyCode;
+    window.downloadCode = downloadCode;
+
+    // --- FUNGSI FETCH UTAMA ---
 
     async function fetchSource(url) {
       previewFrame.style.display = 'none';
       codeBlock.textContent = '';
+      hideCodeActions();
       
       try {
         let fetchUrl = url;
@@ -98,7 +196,10 @@
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
         
-        // 2. Menampilkan Preview (jika dicentang)
+        // ❗ MODIFIKASI: Panggil showCodeActions dengan URL untuk cek kondisi
+        showCodeActions(url); 
+
+        // 2. Menampilkan Preview
         if (showPreview.checked) {
           previewFrame.style.display = 'block';
           
@@ -114,6 +215,7 @@
         status.textContent = 'Error: ' + err.message + '. (Pastikan CORS atau Proxy berfungsi.)';
         codeBlock.textContent = '';
         previewFrame.style.display = 'none';
+        hideCodeActions();
       }
     }
 
@@ -124,4 +226,4 @@
     });
   </script>
 </body>
-    </html>
+  </html>

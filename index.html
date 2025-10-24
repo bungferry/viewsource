@@ -17,9 +17,9 @@
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;}
     
-    /* Perubahan Gaya untuk Kontainer dan Pre */
+    /* Gaya untuk Kontainer dan Pre */
     .code-container {
-        position: relative; /* Penting agar tombol bisa diposisikan absolut */
+        position: relative;
         margin-bottom: 10px;
     }
     pre {
@@ -27,9 +27,9 @@
         padding: 10px; 
         border-radius: 6px; 
         overflow-x: auto;
-        /* Tambahkan padding di atas agar tombol tidak menutupi kode */
         padding-top: 35px; 
         margin: 0;
+        min-height: 20px; /* Tambahkan min-height agar tidak kosong sepenuhnya saat belum ada kode */
     }
     
     /* Gaya untuk Tombol Salin/Unduh */
@@ -37,9 +37,12 @@
         position: absolute;
         top: 8px;
         right: 8px;
-        display: flex;
+        display: none; /* ❗ MODIFIKASI: Sembunyikan secara default */
         gap: 5px;
         z-index: 10;
+    }
+    .code-actions.active {
+        display: flex; /* ❗ MODIFIKASI: Tampilkan saat kelas 'active' ditambahkan */
     }
     .code-actions button {
         background: #30363d;
@@ -63,7 +66,7 @@
         background: #fff;
         border: 2px solid #58a6ff;
         width: 100%;
-        height: 400px; /* Diubah menjadi ukuran tetap untuk kemudahan */
+        height: 400px;
     }
 
     label {font-size: 14px; margin-right: 10px;}
@@ -85,7 +88,7 @@
     <div id="status"></div>
     
     <div class="code-container">
-        <div class="code-actions">
+        <div class="code-actions" id="codeActions"> 
             <button id="copyBtn" onclick="copyCode()"><i class="fas fa-copy"></i> Salin</button>
             <button id="downloadBtn" onclick="downloadCode()"><i class="fas fa-download"></i> Unduh</button>
         </div>
@@ -106,7 +109,18 @@
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
     const previewFrame = document.getElementById('previewFrame');
+    const codeActions = document.getElementById('codeActions'); // ❗ MODIFIKASI: Ambil elemen actions
 
+    // Fungsi untuk menampilkan tombol
+    function showCodeActions() {
+        codeActions.classList.add('active');
+    }
+
+    // Fungsi untuk menyembunyikan tombol
+    function hideCodeActions() {
+        codeActions.classList.remove('active');
+    }
+    
     // Fungsi untuk Salin Kode
     function copyCode() {
         const codeText = codeBlock.textContent;
@@ -125,15 +139,12 @@
         let fileName = 'source.html';
 
         try {
-            // Coba ekstrak nama file dari URL
             const urlObj = new URL(url);
             fileName = urlObj.pathname.split('/').pop() || 'source.html';
-            // Pastikan ekstensi file HTML jika tidak ada
             if (!fileName.includes('.')) {
                 fileName += '.html';
             }
         } catch (e) {
-            // Jika URL tidak valid, gunakan nama default
             fileName = 'source.html';
         }
         
@@ -146,16 +157,16 @@
         document.body.removeChild(link);
     }
     
-    // Pastikan fungsi ini tersedia secara global karena dipanggil melalui onclick
     window.copyCode = copyCode;
     window.downloadCode = downloadCode;
 
     async function fetchSource(url) {
       previewFrame.style.display = 'none';
+      codeBlock.textContent = ''; // Kosongkan kode sebelumnya
+      hideCodeActions(); // ❗ MODIFIKASI: Sembunyikan tombol saat memulai fetch
       
       try {
         let fetchUrl = url;
-        // Penentuan URL Proxy
         if (useProxy.checked) fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
         if (useLocalProxy.checked) fetchUrl = '/proxy?url=' + encodeURIComponent(url);
         
@@ -175,8 +186,11 @@
 
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
+        
+        // ❗ MODIFIKASI: Tampilkan tombol setelah kode muncul
+        showCodeActions(); 
 
-        // 2. Menampilkan Preview yang Benar Menggunakan IFRAME
+        // 2. Menampilkan Preview
         if (showPreview.checked) {
           previewFrame.style.display = 'block';
           
@@ -192,6 +206,7 @@
         status.textContent = 'Error: ' + err.message + '. (Pastikan CORS atau Proxy berfungsi.)';
         codeBlock.textContent = '';
         previewFrame.style.display = 'none';
+        hideCodeActions(); // ❗ MODIFIKASI: Pastikan tombol tersembunyi saat error
       }
     }
 
@@ -202,4 +217,4 @@
     });
   </script>
 </body>
-  </html>
+               </html>

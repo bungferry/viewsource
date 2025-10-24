@@ -29,7 +29,7 @@
         overflow-x: auto;
         padding-top: 35px; 
         margin: 0;
-        min-height: 20px; /* Tambahkan min-height agar tidak kosong sepenuhnya saat belum ada kode */
+        min-height: 20px;
     }
     
     /* Gaya untuk Tombol Salin/Unduh */
@@ -37,12 +37,12 @@
         position: absolute;
         top: 8px;
         right: 8px;
-        display: none; /* ❗ MODIFIKASI: Sembunyikan secara default */
+        display: none; /* Sembunyikan secara default */
         gap: 5px;
         z-index: 10;
     }
     .code-actions.active {
-        display: flex; /* ❗ MODIFIKASI: Tampilkan saat kelas 'active' ditambahkan */
+        display: flex; /* Tampilkan saat class 'active' ditambahkan */
     }
     .code-actions button {
         background: #30363d;
@@ -109,7 +109,7 @@
     const useLocalProxy = document.getElementById('useLocalProxy');
     const showPreview = document.getElementById('showPreview');
     const previewFrame = document.getElementById('previewFrame');
-    const codeActions = document.getElementById('codeActions'); // ❗ MODIFIKASI: Ambil elemen actions
+    const codeActions = document.getElementById('codeActions');
 
     // Fungsi untuk menampilkan tombol
     function showCodeActions() {
@@ -162,8 +162,8 @@
 
     async function fetchSource(url) {
       previewFrame.style.display = 'none';
-      codeBlock.textContent = ''; // Kosongkan kode sebelumnya
-      hideCodeActions(); // ❗ MODIFIKASI: Sembunyikan tombol saat memulai fetch
+      codeBlock.textContent = '';
+      hideCodeActions();
       
       try {
         let fetchUrl = url;
@@ -187,7 +187,7 @@
         codeBlock.textContent = formattedHtml;
         hljs.highlightElement(codeBlock); 
         
-        // ❗ MODIFIKASI: Tampilkan tombol setelah kode muncul
+        // Tampilkan tombol setelah kode muncul
         showCodeActions(); 
 
         // 2. Menampilkan Preview
@@ -206,7 +206,7 @@
         status.textContent = 'Error: ' + err.message + '. (Pastikan CORS atau Proxy berfungsi.)';
         codeBlock.textContent = '';
         previewFrame.style.display = 'none';
-        hideCodeActions(); // ❗ MODIFIKASI: Pastikan tombol tersembunyi saat error
+        hideCodeActions();
       }
     }
 

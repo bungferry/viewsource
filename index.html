@@ -31,7 +31,6 @@
         min-height: 200px;
         padding-top: 40px;
     }
-    /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
     pre code.hljs {
         padding-left: 10px !important;
     }
@@ -66,10 +65,9 @@
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
 
-    /* --- CSS UNTUK LINE NUMBERS (DITAMBAHKAN) --- */
     .hljs-ln-numbers {
         text-align: right;
-        color: #8b949e; /* Warna abu-abu yang tidak mencolok */
+        color: #8b949e;
         border-right: 1px solid #30363d;
         padding-right: 12px !important;
         -webkit-user-select: none;
@@ -79,6 +77,24 @@
     .hljs-ln-code {
         padding-left: 12px !important;
     }
+    
+    /* --- CSS UNTUK FOOTER (DITAMBAHKAN) --- */
+    footer {
+        text-align: center;
+        padding: 20px 15px;
+        margin-top: 30px;
+        border-top: 1px solid #30363d; /* Garis pemisah halus */
+        font-size: 14px;
+        color: #8b949e;
+    }
+    footer a {
+        color: #c9d1d9;
+        text-decoration: none;
+    }
+    footer a:hover {
+        text-decoration: underline;
+    }
+
   </style>
 </head>
 <body onload="initializeAndFetch()">
@@ -102,12 +118,15 @@
         </div>
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
-
   </div>
 
+  <!-- FOOTER DITAMBAHKAN -->
+  <footer>
+    <p>Dibuat dengan ❤️ oleh Anda & Gemini. Hak Cipta &copy; <span id="currentYear"></span></p>
+  </footer>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
-  <!-- SCRIPT PLUGIN LINE NUMBER (DITAMBAHKAN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     const urlInput = document.getElementById('urlInput');
@@ -194,10 +213,7 @@
 
         codeBlock.textContent = formattedHtml;
         
-        // Lakukan highlighting terlebih dahulu
         hljs.highlightElement(codeBlock);
-        
-        // PANGGIL PLUGIN LINE NUMBERS SETELAH HIGHLIGHTING (DITAMBAHKAN)
         hljs.lineNumbersBlock(codeBlock);
 
         showCodeActions(url);
@@ -229,6 +245,11 @@
       }
       fetchSource(url);
     });
+    
+    // JAVASCRIPT UNTUK TAHUN DINAMIS (DITAMBAHKAN)
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    });
   </script>
 </body>
-  </html>
+        </html>

@@ -9,7 +9,7 @@
 
   <style>
     body {font-family: Arial, sans-serif; margin: 0; background: #0d1117; color: #e6edf3;}
-    .container {max-width: 600px; margin: 20px auto; padding: 15px;}
+    .container {max-width: 900px; margin: 20px auto; padding: 15px;}
     h1 {font-size: 22px; margin-bottom: 10px;}
     input, button {padding: 10px; border-radius: 6px; border: none; font-size: 15px;}
     input[type=text] {flex: 1; background: #161b22; color: #e6edf3; border: 1px solid #30363d;}
@@ -31,6 +31,11 @@
         min-height: 200px;
         padding-top: 40px;
     }
+    /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
+    pre code.hljs {
+        padding-left: 10px !important;
+    }
+
 
     .code-actions {
         position: absolute;
@@ -60,6 +65,20 @@
 
     label {font-size: 14px; margin-right: 10px;}
     #status {font-size: 13px; color: #8b949e; margin-top: 8px;}
+
+    /* --- CSS UNTUK LINE NUMBERS (DITAMBAHKAN) --- */
+    .hljs-ln-numbers {
+        text-align: right;
+        color: #8b949e; /* Warna abu-abu yang tidak mencolok */
+        border-right: 1px solid #30363d;
+        padding-right: 12px !important;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+    }
+    .hljs-ln-code {
+        padding-left: 12px !important;
+    }
   </style>
 </head>
 <body onload="initializeAndFetch()">
@@ -70,7 +89,7 @@
       <button id="viewBtn">View Source</button>
     </div>
     <div class="options">
-      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis (Simulasi GitHub)</label>
+      <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
       <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label>
     </div>
@@ -88,6 +107,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
+  <!-- SCRIPT PLUGIN LINE NUMBER (DITAMBAHKAN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     const urlInput = document.getElementById('urlInput');
     const codeBlock = document.getElementById('codeBlock');
@@ -102,14 +123,9 @@
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
-    // --- FUNGSI UTILITY TOMBOL ---
-
     function showCodeActions(url) {
-        if (url.trim() !== DEFAULT_URL) {
-            codeActions.classList.add('active');
-        } else {
-            codeActions.classList.remove('active');
-        }
+        if (url.trim() !== DEFAULT_URL) codeActions.classList.add('active');
+        else codeActions.classList.remove('active');
     }
 
     function hideCodeActions() {
@@ -130,17 +146,13 @@
         const codeText = codeBlock.textContent;
         const url = urlInput.value.trim();
         let fileName = 'source.html';
-
         try {
             const urlObj = new URL(url);
             fileName = urlObj.pathname.split('/').pop() || 'source.html';
-            if (!fileName.includes('.')) {
-                fileName += '.html';
-            }
+            if (!fileName.includes('.')) fileName += '.html';
         } catch (e) {
             fileName = 'source.html';
         }
-
         const blob = new Blob([codeText], { type: 'text/html' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
@@ -153,16 +165,12 @@
     window.copyCode = copyCode;
     window.downloadCode = downloadCode;
 
-    // --- FUNGSI FETCH UTAMA ---
-
     async function fetchSource(url) {
       codeBlock.textContent = '';
       hideCodeActions();
-
       let finalFetchUrl = url;
       let usedProxyInfo = 'langsung';
 
-      // 1. Tentukan URL Fetch
       if (useProxy.checked) {
           finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
           usedProxyInfo = 'proxy allorigins.win';
@@ -171,10 +179,8 @@
           usedProxyInfo = 'proxy lokal';
       }
 
-      // 2. Proses Fetch dan Formatting Kode Sumber
       try {
         status.textContent = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
-
         const res = await fetch(finalFetchUrl);
         if (!res.ok) throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
         const html = await res.text();
@@ -187,35 +193,23 @@
         });
 
         codeBlock.textContent = formattedHtml;
+        
+        // Lakukan highlighting terlebih dahulu
         hljs.highlightElement(codeBlock);
+        
+        // PANGGIL PLUGIN LINE NUMBERS SETELAH HIGHLIGHTING (DITAMBAHKAN)
+        hljs.lineNumbersBlock(codeBlock);
 
         showCodeActions(url);
 
-        // 3. Menampilkan Preview (dengan metode Blob URL)
         if (showPreview.checked) {
-            // Buat tag <base> untuk memperbaiki path relatif (CSS, gambar, JS)
             const baseTag = `<base href="${url}">`;
-            
-            // Sisipkan tag <base> setelah tag <head> untuk memastikan semua aset dimuat dengan benar
-            // Menggunakan regex agar lebih fleksibel (menangani <head> atau <head attr="...">)
             const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
-
-            // Buat Blob (file virtual di memori browser) dari kode HTML
             const blob = new Blob([htmlWithBase], { type: 'text/html' });
-
-            // Buat URL lokal yang menunjuk ke Blob tersebut
             const previewBlobUrl = URL.createObjectURL(blob);
-
-            // Buka URL lokal tersebut di tab baru
             window.open(previewBlobUrl, '_blank');
-            
             status.textContent += ` | Preview lokal dibuat di tab baru.`;
-            
-            // Opsional: Hapus URL objek setelah tab baru terbuka untuk menghemat memori
-            // Namun, kadang ini bisa terlalu cepat, jadi biarkan browser menanganinya saat tab ditutup.
-            // setTimeout(() => URL.revokeObjectURL(previewBlobUrl), 100);
         }
-
       } catch (err) {
         status.textContent = `Error: ${err.message}. Gagal mengambil sumber dari ${url}`;
         codeBlock.textContent = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
@@ -223,7 +217,6 @@
       }
     }
 
-    // --- FUNGSI INISIALISASI STARTUP ---
     function initializeAndFetch() {
         fetchSource(urlInput.value.trim());
     }
@@ -238,4 +231,4 @@
     });
   </script>
 </body>
-                                                                             </html>
+  </html>

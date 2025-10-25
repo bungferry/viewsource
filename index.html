@@ -155,7 +155,6 @@
         hljs.lineNumbersBlock(codeBlock);
         showCodeActions(url);
 
-        // ✅ Tambahan: buat blob preview
         const blob = new Blob([html], { type: "text/html" });
         lastBlobUrl = URL.createObjectURL(blob);
         status.innerHTML = `Fetched ${formattedSize} in ${duration}s dari ${usedProxyInfo} <br> Sumber Preview: <a href="${lastBlobUrl}" target="_blank">${url}</a>`;

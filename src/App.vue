@@ -4,7 +4,6 @@ import { ref, onMounted, nextTick } from 'vue';
 // --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
 import hljs from 'highlight.js/lib/core';
 import htmlBeautify from 'js-beautify';
-// SOLUSI: Import highlightjs-line-numbers.js tanpa nama (untuk menghindari error build)
 import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
@@ -15,23 +14,23 @@ hljs.registerLanguage('html', xml);
 
 // --- STATE (Data Reaktif) ---
 const urlInput = ref('https://example.com');
-const codeContent = ref(''); // INI ADALAH SUMBER KODE YANG BENAR
+const codeContent = ref(''); 
 const statusMessage = ref('');
-const useProxy = ref(true); // checked
+const useProxy = ref(true); // Default: menggunakan proxy untuk stabilitas awal
 const useLocalProxy = ref(false);
 const codeActionsActive = ref(false);
 const isLoading = ref(false);
-const codeBlockRef = ref(null); // Ref untuk elemen <code>
+const codeBlockRef = ref(null); 
 let lastBlobUrl = null; 
 
 // --- KONSTANTA ---
 const DEFAULT_URL = 'https://example.com';
-const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
+// Proxy yang harusnya paling andal
+const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url='; 
 const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
 // --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    // Perbaikan syntax yang stabil
     codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
 
@@ -51,7 +50,6 @@ function formatBytes(bytes, decimals = 2) {
 // --- FUNGSI AKSI ---
 
 function copyCode() {
-    // PERBAIKAN STABILITAS: Ambil konten dari state Vue, bukan DOM
     const codeText = codeContent.value; 
     navigator.clipboard.writeText(codeText).then(() => {
         window.alert('Kode sumber berhasil disalin!');
@@ -62,7 +60,6 @@ function copyCode() {
 }
 
 function downloadCode() {
-    // PERBAIKAN STABILITAS: Ambil konten dari state Vue, bukan DOM
     const codeText = codeContent.value; 
     const url = urlInput.value.trim();
     let fileName = 'source.html';
@@ -101,14 +98,16 @@ async function fetchSource(url) {
     let finalFetchUrl = url;
     let usedProxyInfo = 'langsung';
 
-    if (useProxy.value && !useLocalProxy.value) { 
-        finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
-        usedProxyInfo = 'proxy allorigins.win';
-    } else if (useLocalProxy.value) {
+    // Logika Proxy yang Lebih Jelas:
+    if (useLocalProxy.value) { // Prioritas 1: Proxy Lokal
         finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
         usedProxyInfo = 'proxy lokal';
-    } else {
+    } else if (useProxy.value) { // Prioritas 2: Proxy Statis (Default jika tidak ada lokal)
+        finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
+        usedProxyInfo = 'proxy allorigins.win';
+    } else { // Pilihan 3: Langsung (raw)
         usedProxyInfo = 'langsung';
+        // finalFetchUrl sudah berisi URL asli
     }
 
     const startTime = performance.now();
@@ -134,19 +133,17 @@ async function fetchSource(url) {
             end_with_newline: true
         });
 
-        // 1. Update state (sumber kebenaran)
+        // 1. Update state
         codeContent.value = formattedHtml;
         
-        // Tunggu DOM diupdate
         await nextTick();
         
-        // 2. Lakukan highlighting dan line numbers pada DOM yang sudah diperbarui
+        // 2. Lakukan highlighting dan line numbers
         if (codeBlockRef.value) {
-            // Hilangkan class hljs-ln agar penomoran baris diinisiasi ulang dengan benar
             codeBlockRef.value.classList.remove('hljs-ln');
             hljs.highlightElement(codeBlockRef.value);
             
-            // Mengaktifkan kembali penomoran baris
+            // Mengaktifkan penomoran baris
             if (codeBlockRef.value.textContent.trim().length > 0) {
               hljs.lineNumbersBlock(codeBlockRef.value);
             }
@@ -165,7 +162,9 @@ async function fetchSource(url) {
         showCodeActions(url);
 
     } catch (err) {
-        statusMessage.value = `Error: ${err.message}. Gagal mengambil sumber dari ${url}`;
+        // Logging error yang lebih spesifik ke konsol
+        console.error("FETCH ERROR DETAIL:", err); 
+        statusMessage.value = `Error: ${err.message}. Gagal memuat konten. Periksa URL Anda atau coba opsi proxy yang berbeda.`;
         codeContent.value = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
         hideCodeActions();
     } finally {
@@ -175,6 +174,7 @@ async function fetchSource(url) {
 
 // --- LIFECYCLE HOOKS ---
 onMounted(() => {
+    // Jalankan fetchSource saat komponen dimuat
     fetchSource(urlInput.value.trim());
 });
 
@@ -191,9 +191,7 @@ window.addEventListener('unload', () => {
     
     <!-- Controls Section -->
     <div class="controls">
-      <!-- v-model mengganti value="" dan memantau perubahan -->
       <input type="text" v-model="urlInput" placeholder="https://example.com" />
-      <!-- @click mengganti addEventListener -->
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
       </button>
@@ -201,9 +199,10 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- v-model untuk checkbox -->
-      <label><input type="checkbox" v-model="useProxy"> Gunakan Proxy Statis</label>
-      <label><input type="checkbox" v-model="useLocalProxy"> Gunakan Proxy Lokal</label>
+      <!-- Opsi Proxy Statis (allorigins.win) -->
+      <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy"> Gunakan Proxy Statis</label>
+      <!-- Opsi Proxy Lokal (/proxy?url=) -->
+      <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy"> Gunakan Proxy Lokal</label>
     </div>
     
     <!-- Status Section (v-html untuk menampilkan link) -->
@@ -211,12 +210,11 @@ window.addEventListener('unload', () => {
     
     <!-- Code Viewer Section -->
     <div class="code-container">
-        <!-- :class untuk mengontrol tampilan/sembunyi -->
         <div class="code-actions" :class="{ active: codeActionsActive }">
             <button @click="copyCode"><i class="fas fa-copy"></i> Salin</button>
             <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
         </div>
-        <!-- ref untuk mendapatkan referensi elemen di script, {{ codeContent }} untuk menampilkan teks -->
+        <!-- Catatan: Class 'html' penting untuk highlighting yang benar -->
         <pre><code ref="codeBlockRef" id="codeBlock" class="html">{{ codeContent }}</code></pre>
     </div>
     

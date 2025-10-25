@@ -10,10 +10,10 @@
 
 **Mengapa Penting?**
 
-**Debugging:** Mencari cepat kesalahan coding.
+1. **Debugging:** Mencari cepat kesalahan coding.
 
-**Belajar:** Mengintip teknik developer lain.
+1. **Belajar:** Mengintip teknik developer lain.
 
-**SEO:** Memverifikasi tag penting seperti title dan meta.
+1. **SEO:** Memverifikasi tag penting seperti title dan meta.
 
 Tool modern menambahkan fitur seperti **ukuran file** dan **kecepatan fetch** untuk analisis kinerja. **View Source** adalah jendela untuk memahami anatomi website. 🔎

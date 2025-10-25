@@ -1,9 +1,7 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/favicon\\.png", "dest": "/favicon.png" },
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
-    { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

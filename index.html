@@ -8,7 +8,6 @@
   <meta name="keywords" content="view source, cek kode sumber, html viewer, kode sumber online, analisa website">
   <meta name="author" content="Ferry Ayunda">
   <meta name="robots" content="index, follow"> 
-  
   <meta property="og:title" content="View Source Tool Profesional | Cek Sumber Kode">
   <meta property="og:description" content="Lihat, format, dan unduh kode sumber HTML/CSS dari website manapun secara instan.">
   <meta property="og:url" content="https://bungferry.github.io/view-source/">
@@ -17,12 +16,9 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="View Source Tool Profesional | Cek Sumber Kode">
   <meta name="twitter:description" content="Lihat, format, dan unduh kode sumber HTML/CSS dari website manapun secara instan.">
-
   <link rel="icon" type="image/x-icon" href="favicon.png">
-  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
   <style>
     body {font-family: Arial, sans-serif; margin: 0; padding: 0; background: #0d1117; color: #e6edf3;}
     .container {max-width: 900px; margin: 20px auto; padding: 15px;}
@@ -33,85 +29,21 @@
     button:hover {background: #2ea043;}
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
     .options {margin-bottom: 15px;} 
-
-    .code-container {
-        position: relative;
-        margin-bottom: 10px;
-    }
-    pre {
-        background: #2d2d2d;
-        padding: 15px;
-        border-radius: 6px;
-        overflow-x: auto;
-        margin: 0;
-        min-height: 200px;
-        padding-top: 20px;
-    }
-    /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
-    pre code.hljs {
-        padding-left: 10px !important;
-      background: #2d2d2d;
-      font-size: 14px;
-    }
-
-
-    .code-actions {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        display: none;
-        gap: 5px;
-        z-index: 10;
-    }
-    .code-actions.active {
-        display: flex;
-    }
-    .code-actions button {
-        background: #30363d;
-      border: 1px solid #8b949e;
-        color: #c9d1d9;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 14px;
-        transition: background 0.2s;
-    }
-    .code-actions button:hover {
-        background: #484f58;
-    }
-    .code-actions button i {
-        margin-right: 5px;
-    }
-
+    .code-container {position: relative; margin-bottom: 10px;}
+    pre {background: #2d2d2d; padding: 15px; border-radius: 6px; overflow-x: auto; margin: 0; min-height: 200px; padding-top: 20px;}
+    pre code.hljs {padding-left: 10px !important; background: #2d2d2d; font-size: 14px;}
+    .code-actions {position: absolute; top: 8px; right: 8px; display: none; gap: 5px; z-index: 10;}
+    .code-actions.active {display: flex;}
+    .code-actions button {background: #30363d; border: 1px solid #8b949e; color: #c9d1d9; padding: 5px 10px; border-radius: 4px; font-size: 14px; transition: background 0.2s;}
+    .code-actions button:hover {background: #484f58;}
+    .code-actions button i {margin-right: 5px;}
     label {font-size: 14px; margin-right: 10px;}
     #status, footer {font-size: 13px; color: #8b949e; margin-top: 8px; margin-bottom: 10px;}
-    /* Tambahan style untuk tautan di status agar kontras */
-    a:link,
-    a:visited,
-    #status a {
-        color: #2ea043; 
-        text-decoration: none;
-    }
-    #status a:hover {
-        text-decoration: underline;
-    }
-
-    /* --- CSS UNTUK LINE NUMBERS --- */
-    .hljs-ln-numbers {
-        text-align: right;
-        color: #8b949e; 
-        border-right: 1px solid #8b949e;
-        padding-right: 12px !important;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-    }
-    .hljs-ln-code {
-        padding-left: 12px !important;
-    }
-    .love { 
-      color: #FF0000;
-      font-size: 13px;
-    }
+    a:link, a:visited, #status a {color: #2ea043; text-decoration: none;}
+    #status a:hover {text-decoration: underline;}
+    .hljs-ln-numbers {text-align: right; color: #8b949e; border-right: 1px solid #8b949e; padding-right: 12px !important; user-select: none;}
+    .hljs-ln-code {padding-left: 12px !important;}
+    .love { color: #FF0000; font-size: 13px;}
   </style>
 </head>
 <body onload="initializeAndFetch()">
@@ -133,9 +65,8 @@
         </div>
         <pre><code id="codeBlock" class="html"></code></pre>
     </div>
-    <footer>View Source dibuat dengan <i class="fa-solid fa-heart love"></i> oleh <a href="https://bungferry.github.io/">Ferry Ayunda</a>. </footer>
+    <footer>View Source dibuat dengan <i class="fa-solid fa-heart love"></i> oleh <a href="https://bungferry.github.io/">Ferry Ayunda</a>.</footer>
   </div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
@@ -150,27 +81,21 @@
 
     const DEFAULT_URL = 'https://example.com';
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
-    const LOCAL_PROXY_BASE_URL = '/proxy?url=';
-    
-    let lastBlobUrl = null; 
+    const LOCAL_PROXY_BASE_URL = '/api/proxy?url='; // ← sudah diubah
+
+    let lastBlobUrl = null;
 
     function showCodeActions(url) {
         if (url.trim() !== DEFAULT_URL) codeActions.classList.add('active');
         else codeActions.classList.remove('active');
     }
-
-    function hideCodeActions() {
-        codeActions.classList.remove('active');
-    }
+    function hideCodeActions() { codeActions.classList.remove('active'); }
 
     function copyCode() {
         const codeText = codeBlock.textContent;
-        navigator.clipboard.writeText(codeText).then(() => {
-            alert('Kode sumber berhasil disalin!');
-        }).catch(err => {
-            console.error('Gagal menyalin: ', err);
-            alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
-        });
+        navigator.clipboard.writeText(codeText)
+          .then(() => alert('Kode sumber berhasil disalin!'))
+          .catch(() => alert('Gagal menyalin kode.'));
     }
 
     function downloadCode() {
@@ -179,47 +104,29 @@
         let fileName = 'source.html';
         try {
             const urlObj = new URL(url);
-            fileName = urlObj.pathname.split('/').pop() || 'source.html';
-            if (!fileName.includes('.')) fileName += '.html';
-        } catch (e) {
-            fileName = 'source.html';
-        }
+            fileName = urlObj.hostname + '.html';
+        } catch {}
         const blob = new Blob([codeText], { type: 'text/html' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = fileName;
-        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
     }
 
-    window.copyCode = copyCode;
-    window.downloadCode = downloadCode;
-    
-    // --- FUNGSI Mengubah Byte ke format KB/MB yang mudah dibaca ---
     function formatBytes(bytes, decimals = 2) {
         if (bytes === 0) return '0 Bytes';
-
         const k = 1024;
         const dm = decimals < 0 ? 0 : decimals;
         const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
-    // -------------------------------------------------------------------
 
     async function fetchSource(url) {
       codeBlock.textContent = '';
       hideCodeActions();
-      
-      // Hapus URL blob lama sebelum fetch baru
-      if (lastBlobUrl) {
-          URL.revokeObjectURL(lastBlobUrl);
-          lastBlobUrl = null;
-      }
-      
+      if (lastBlobUrl) { URL.revokeObjectURL(lastBlobUrl); lastBlobUrl = null; }
+
       let finalFetchUrl = url;
       let usedProxyInfo = 'langsung';
 
@@ -232,75 +139,34 @@
       }
 
       const startTime = performance.now();
-      
       try {
-        status.textContent = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
+        status.textContent = `Mengambil kode sumber dari ${url} (${usedProxyInfo})...`;
         const res = await fetch(finalFetchUrl);
-        
         const endTime = performance.now();
         const duration = ((endTime - startTime) / 1000).toFixed(6);
-
         if (!res.ok) throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
-        
         const html = await res.text();
-        
         const encoder = new TextEncoder();
         const byteLength = encoder.encode(html).length;
         const formattedSize = formatBytes(byteLength);
-        
-        const formattedHtml = html_beautify(html, {
-            indent_size: 2,
-            space_in_empty_paren: true,
-            end_with_newline: true
-        });
-
+        const formattedHtml = html_beautify(html, { indent_size: 2, space_in_empty_paren: true, end_with_newline: true });
         codeBlock.textContent = formattedHtml;
-        
-        // Lakukan highlighting dan line numbers
         hljs.highlightElement(codeBlock);
         hljs.lineNumbersBlock(codeBlock);
-
-        // --- PEMBUATAN URL BLOB ---
-        const baseTag = `<base href="${url}">`;
-        const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
-        const blob = new Blob([htmlWithBase], { type: 'text/html' });
-        const previewBlobUrl = URL.createObjectURL(blob);
-        lastBlobUrl = previewBlobUrl; 
-        
-        // --- PEMBARUAN STATUS DENGAN LINK BLOB TERSEMBUNYI ---
-        const statusMessage = `Fetched ${formattedSize} in ${duration} seconds. <br> Sumber Preview: <a href="${previewBlobUrl}" target="_blank">${url}</a>`;
-            
-        status.innerHTML = statusMessage; // Menggunakan innerHTML untuk menampilkan tautan
-
         showCodeActions(url);
-
+        status.innerHTML = `Fetched ${formattedSize} in ${duration}s dari ${usedProxyInfo}`;
       } catch (err) {
-        status.textContent = `Error: ${err.message}. Gagal mengambil sumber dari ${url}`;
-        codeBlock.textContent = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
-        hideCodeActions();
+        status.textContent = `Error: ${err.message}`;
+        codeBlock.textContent = 'Gagal memuat konten.';
       }
     }
 
-    function initializeAndFetch() {
-        fetchSource(urlInput.value.trim());
-    }
-
+    function initializeAndFetch() { fetchSource(urlInput.value.trim()); }
     viewBtn.addEventListener('click', () => {
       const url = urlInput.value.trim();
-      if (!url) {
-        status.textContent = 'Masukkan URL yang valid.';
-        return;
-      }
+      if (!url) { status.textContent = 'Masukkan URL valid.'; return; }
       fetchSource(url);
     });
-
-    // Revoke URL Blob saat halaman ditutup/di-unload 
-    window.addEventListener('unload', () => {
-        if (lastBlobUrl) {
-            URL.revokeObjectURL(lastBlobUrl);
-        }
-    });
-
   </script>
 </body>
-  </html>
+</html>

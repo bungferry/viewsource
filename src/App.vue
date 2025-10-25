@@ -4,15 +4,13 @@ import { ref, onMounted, nextTick } from 'vue';
 // --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
 import hljs from 'highlight.js/lib/core';
 import htmlBeautify from 'js-beautify';
-// SOLUSI: Import highlightjs-line-numbers.js tanpa nama karena tidak ada default export.
+// Solusi untuk error impor: import tanpa nama
 import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
 import xml from 'highlight.js/lib/languages/xml'; 
 hljs.registerLanguage('html', xml);
 
-// Karena highlightjs-line-numbers.js sudah diimpor, 
-// ia akan memodifikasi objek hljs secara otomatis, sehingga hljs.addPlugin tidak diperlukan lagi.
 // -----------------------------------------------------------
 
 // --- STATE (Data Reaktif) ---
@@ -33,7 +31,7 @@ const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
 // --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    // Perbaikan: Menghapus tanda kurung yang tidak perlu untuk menghindari error parser
+    // PERBAIKAN 1: Menghapus tanda kurung yang menyebabkan error sintaks ESBuild
     codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
 
@@ -53,10 +51,9 @@ function formatBytes(bytes, decimals = 2) {
 // --- FUNGSI AKSI ---
 
 function copyCode() {
-    const codeText = codeBlockRef.value.textContent;
-    // Perbaikan: gunakan codeBlockRef untuk mendapatkan konten
+    // Pastikan kita menyalin teks dari elemen yang sudah di-highlight (codeBlockRef)
+    const codeText = codeBlockRef.value.textContent; 
     navigator.clipboard.writeText(codeText).then(() => {
-        // Menggunakan window.alert sebagai pengganti alert() bawaan
         window.alert('Kode sumber berhasil disalin!');
     }).catch(err => {
         console.error('Gagal menyalin: ', err);
@@ -103,14 +100,13 @@ async function fetchSource(url) {
     let finalFetchUrl = url;
     let usedProxyInfo = 'langsung';
 
-    if (useProxy.value && !useLocalProxy.value) { // Tambahan logika agar tidak konflik jika keduanya dicentang
+    if (useProxy.value && !useLocalProxy.value) { 
         finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
         usedProxyInfo = 'proxy allorigins.win';
     } else if (useLocalProxy.value) {
         finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
         usedProxyInfo = 'proxy lokal';
     } else {
-        // Jika keduanya tidak dicentang, fetch langsung
         usedProxyInfo = 'langsung';
     }
 
@@ -147,8 +143,10 @@ async function fetchSource(url) {
             // Hilangkan class hljs-ln agar penomoran baris diinisiasi ulang dengan benar
             codeBlockRef.value.classList.remove('hljs-ln');
             hljs.highlightElement(codeBlockRef.value);
+            
+            // PERBAIKAN 2: Mengaktifkan kembali penomoran baris yang sebelumnya ter-comment
             if (codeBlockRef.value.textContent.trim().length > 0) {
-              // hljs.lineNumbersBlock(codeBlockRef.value);
+              hljs.lineNumbersBlock(codeBlockRef.value);
             }
         }
 

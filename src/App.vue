@@ -44,7 +44,7 @@
         <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
       </div>
 
-      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs line-numbers">{{ codeContent }}</code></pre>
+      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs">{{ codeContent }}</code></pre>
     </div>
 
     <footer>
@@ -60,7 +60,6 @@ import { ref, onMounted, nextTick } from "vue";
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/github-dark.css";
-import "highlightjs-line-numbers.js";
 import htmlBeautify from "js-beautify";
 
 // Daftarkan bahasa HTML
@@ -81,7 +80,7 @@ const DEFAULT_URL = "https://example.com";
 const FALLBACK_FETCH_PROXY = "https://api.allorigins.win/raw?url=";
 const LOCAL_PROXY_BASE_URL = "/proxy?url=";
 
-// Utilitas
+// Fungsi bantu
 function showCodeActions(url) {
   codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
@@ -103,7 +102,7 @@ function cleanSourceCode(html) {
   return cleanedHtml.trim();
 }
 
-// Aksi tombol
+// Tombol aksi
 function copyCode() {
   navigator.clipboard
     .writeText(codeContent.value)
@@ -186,28 +185,25 @@ async function fetchSource(url) {
     codeContent.value = formattedHtml;
     await nextTick();
 
-    // Highlight dan line number
     if (codeBlockRef.value) {
       hljs.highlightElement(codeBlockRef.value);
-      if (typeof hljs.lineNumbersBlock === "function") {
-        hljs.lineNumbersBlock(codeBlockRef.value);
-      }
+      // Tambahkan line numbers setelah highlight
+      import("highlightjs-line-numbers.js").then((mod) => {
+        const hljsLineNumbers = mod.default || mod;
+        hljsLineNumbers.initLineNumbersOnLoad();
+      });
     }
 
     const baseTag = `<base href="${url}">`;
-    const htmlWithBase = formattedHtml.replace(
-      /<head[^>]*>/i,
-      `$&${baseTag}`
-    );
+    const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
     const blob = new Blob([htmlWithBase], { type: "text/html" });
     const previewBlobUrl = URL.createObjectURL(blob);
     lastBlobUrl = previewBlobUrl;
 
     statusMessage.value = `Fetched ${formattedSize} in ${duration} seconds. <br> Sumber Preview: <a href="${previewBlobUrl}" target="_blank">${url}</a>`;
-
     showCodeActions(url);
   } catch (err) {
-    console.error("FETCH ERROR DETAIL:", err);
+    console.error("FETCH ERROR:", err);
     statusMessage.value = `Error: ${err.message}. Gagal memuat konten.`;
     codeContent.value = "Gagal memuat konten.";
     hideCodeActions();
@@ -218,6 +214,12 @@ async function fetchSource(url) {
 
 onMounted(() => {
   fetchSource(urlInput.value.trim());
+
+  // Inisialisasi plugin line numbers global
+  import("highlightjs-line-numbers.js").then((mod) => {
+    const hljsLineNumbers = mod.default || mod;
+    hljsLineNumbers.init({ singleLine: true });
+  });
 });
 
 window.addEventListener("unload", () => {

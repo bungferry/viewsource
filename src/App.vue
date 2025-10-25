@@ -211,7 +211,7 @@ window.addEventListener('unload', () => {
     
     <!-- Controls Section -->
     <div class="controls">
-      <!-- PERBAIKAN: Tag <input> pertama di bagian controls -->
+      <!-- FOKUS PERHATIAN: Pastikan ada self-closing slash di sini -->
       <input type="text" v-model="urlInput" placeholder="https://example.com" />
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
@@ -220,9 +220,8 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- PERBAIKAN: Tag <input> kedua (Proxy Statis) -->
+      <!-- FOKUS PERHATIAN: Pastikan ada self-closing slash di sini -->
       <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy" /> Gunakan Proxy Statis</label>
-      <!-- PERBAIKAN: Tag <input> ketiga (Proxy Lokal) -->
       <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy" /> Gunakan Proxy Lokal</label>
     </div>
     

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "highlight.js": "^11.9.0",
-    "highlightjs-line-numbers-es": "^1.0.3", 
+    "highlightjs-line-numbers.js": "^2.8.0",
     "js-beautify": "^1.15.1",
     "vue": "^3.4.21"
   },

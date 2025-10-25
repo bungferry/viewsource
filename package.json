@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.21",
-    "highlight.js": "^11.8.0",
-    "js-beautify": "^1.14.0",
-    "highlightjs-line-numbers.js": "^2.8.0"
+    "highlight.js": "^11.9.0",
+    "highlightjs-line-numbers-es": "^1.0.3", 
+    "js-beautify": "^1.15.1",
+    "vue": "^3.4.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

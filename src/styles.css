@@ -4,7 +4,7 @@ body {
     margin: 0;
     padding: 0;
     background: #0d1117;
-    color: #e6edf3;
+    color: #c9d1d9; /* Warna disesuaikan dengan tema highlight */
 }
 
 .container {
@@ -138,7 +138,7 @@ a:visited,
 /* === FIX WARNA HIGHLIGHT === */
 .hljs {
     background: #161b22 !important;
-    color: #c9d1d9 !important;
+    color: #c9d1d9 !important; /* Warna teks default */
     font-family: "JetBrains Mono", "Fira Code", monospace;
     line-height: 1.6;
     font-size: 14px;
@@ -167,9 +167,11 @@ a:visited,
 }
 
 /* === LINE NUMBER TABLE === */
+/* Styling untuk plugin line-numbers */
 table.hljs-ln {
     border-collapse: collapse;
     width: 100%;
+    border: none;
 }
 
 .hljs-ln-numbers {
@@ -183,5 +185,5 @@ table.hljs-ln {
 
 .hljs-ln-code {
     padding-left: 12px !important;
-    color: #e6edf3;
+    /* PROPERTI 'color' DIHAPUS DARI SINI UNTUK MEMPERBAIKI HIGHLIGHTING */
 }

@@ -106,7 +106,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
-  <!-- SCRIPT PLUGIN LINE NUMBER (DITAMBAHKAN) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
   <script>
     const urlInput = document.getElementById('urlInput');
@@ -163,6 +162,20 @@
 
     window.copyCode = copyCode;
     window.downloadCode = downloadCode;
+    
+    // --- FUNGSI BARU: Mengubah Byte ke format KB/MB yang mudah dibaca ---
+    function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0 Bytes';
+
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+    // -------------------------------------------------------------------
 
     async function fetchSource(url) {
       codeBlock.textContent = '';
@@ -178,12 +191,36 @@
           usedProxyInfo = 'proxy lokal';
       }
 
+      // --- TITIK MULAI PENGHITUNGAN WAKTU ---
+      const startTime = performance.now();
+      // -------------------------------------
+      
       try {
         status.textContent = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
         const res = await fetch(finalFetchUrl);
+        
+        // --- TITIK SELESAI PENGHITUNGAN WAKTU ---
+        const endTime = performance.now();
+        const duration = ((endTime - startTime) / 1000).toFixed(6); // Durasi dalam detik, 6 desimal
+        // ---------------------------------------
+
         if (!res.ok) throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
+        
+        // Kloning respons untuk mendapatkan header Content-Length jika ada.
+        // Namun, karena AllOrigins/proxy mungkin tidak meneruskan header ini dengan benar,
+        // kita akan mengukur **ukuran teks hasil** setelah di-fetch.
         const html = await res.text();
-        status.textContent = `Berhasil dimuat. Sumber: ${url}`;
+        
+        // --- PENGHITUNGAN UKURAN KONTEN ---
+        // Menggunakan TextEncoder untuk mendapatkan ukuran byte yang lebih akurat (UTF-8)
+        const encoder = new TextEncoder();
+        const byteLength = encoder.encode(html).length;
+        const formattedSize = formatBytes(byteLength);
+        // ---------------------------------
+        
+        // --- PEMBARUAN STATUS DENGAN UKURAN DAN KECEPATAN ---
+        status.textContent = `Fetched ${formattedSize} in ${duration} seconds. Sumber: ${url}`;
+        // ----------------------------------------------------
 
         const formattedHtml = html_beautify(html, {
             indent_size: 2,
@@ -230,4 +267,4 @@
     });
   </script>
 </body>
-    </html>
+  </html>

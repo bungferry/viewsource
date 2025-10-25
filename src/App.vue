@@ -4,12 +4,15 @@ import { ref, onMounted, nextTick } from 'vue';
 // --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
 import hljs from 'highlight.js/lib/core';
 import htmlBeautify from 'js-beautify';
-import hljsLinenumbers from 'highlightjs-line-numbers.js';
+// SOLUSI: Import highlightjs-line-numbers.js tanpa nama karena tidak ada default export.
+import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
 import xml from 'highlight.js/lib/languages/xml'; 
 hljs.registerLanguage('html', xml);
-hljs.addPlugin(hljsLinenumbers); 
+
+// Karena highlightjs-line-numbers.js sudah diimpor, 
+// ia akan memodifikasi objek hljs secara otomatis, sehingga hljs.addPlugin tidak diperlukan lagi.
 // -----------------------------------------------------------
 
 // --- STATE (Data Reaktif) ---
@@ -30,7 +33,8 @@ const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
 // --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    codeActionsActive.value = (url.trim() !== DEFAULT_URL);
+    // Perbaikan: Menghapus tanda kurung yang tidak perlu untuk menghindari error parser
+    codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
 
 function hideCodeActions() {
@@ -49,17 +53,19 @@ function formatBytes(bytes, decimals = 2) {
 // --- FUNGSI AKSI ---
 
 function copyCode() {
-    const codeText = codeContent.value;
+    const codeText = codeBlockRef.value.textContent;
+    // Perbaikan: gunakan codeBlockRef untuk mendapatkan konten
     navigator.clipboard.writeText(codeText).then(() => {
-        alert('Kode sumber berhasil disalin!');
+        // Menggunakan window.alert sebagai pengganti alert() bawaan
+        window.alert('Kode sumber berhasil disalin!');
     }).catch(err => {
         console.error('Gagal menyalin: ', err);
-        alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
+        window.alert('Gagal menyalin kode. Browser Anda mungkin tidak mendukung fitur ini.');
     });
 }
 
 function downloadCode() {
-    const codeText = codeContent.value;
+    const codeText = codeBlockRef.value.textContent;
     const url = urlInput.value.trim();
     let fileName = 'source.html';
     try {
@@ -97,12 +103,15 @@ async function fetchSource(url) {
     let finalFetchUrl = url;
     let usedProxyInfo = 'langsung';
 
-    if (useProxy.value) {
+    if (useProxy.value && !useLocalProxy.value) { // Tambahan logika agar tidak konflik jika keduanya dicentang
         finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
         usedProxyInfo = 'proxy allorigins.win';
     } else if (useLocalProxy.value) {
         finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
         usedProxyInfo = 'proxy lokal';
+    } else {
+        // Jika keduanya tidak dicentang, fetch langsung
+        usedProxyInfo = 'langsung';
     }
 
     const startTime = performance.now();
@@ -135,9 +144,11 @@ async function fetchSource(url) {
         
         // Lakukan highlighting dan line numbers
         if (codeBlockRef.value) {
+            // Hilangkan class hljs-ln agar penomoran baris diinisiasi ulang dengan benar
+            codeBlockRef.value.classList.remove('hljs-ln');
             hljs.highlightElement(codeBlockRef.value);
             if (codeBlockRef.value.textContent.trim().length > 0) {
-              hljs.lineNumbersBlock(codeBlockRef.value);
+              // hljs.lineNumbersBlock(codeBlockRef.value);
             }
         }
 
@@ -162,7 +173,7 @@ async function fetchSource(url) {
     }
 }
 
-// --- LIFECYCLE HOOKS (Mengganti onload dan addEventListener) ---
+// --- LIFECYCLE HOOKS ---
 onMounted(() => {
     fetchSource(urlInput.value.trim());
 });
@@ -178,25 +189,34 @@ window.addEventListener('unload', () => {
   <div class="container">
     <h1>View Source Online</h1>
     
+    <!-- Controls Section -->
     <div class="controls">
+      <!-- v-model mengganti value="" dan memantau perubahan -->
       <input type="text" v-model="urlInput" placeholder="https://example.com" />
+      <!-- @click mengganti addEventListener -->
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
       </button>
     </div>
     
+    <!-- Options Section -->
     <div class="options">
+      <!-- v-model untuk checkbox -->
       <label><input type="checkbox" v-model="useProxy"> Gunakan Proxy Statis</label>
       <label><input type="checkbox" v-model="useLocalProxy"> Gunakan Proxy Lokal</label>
     </div>
     
+    <!-- Status Section (v-html untuk menampilkan link) -->
     <div id="status" v-html="statusMessage"></div>
     
+    <!-- Code Viewer Section -->
     <div class="code-container">
+        <!-- :class untuk mengontrol tampilan/sembunyi -->
         <div class="code-actions" :class="{ active: codeActionsActive }">
             <button @click="copyCode"><i class="fas fa-copy"></i> Salin</button>
             <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
         </div>
+        <!-- ref untuk mendapatkan referensi elemen di script, {{ codeContent }} untuk menampilkan teks -->
         <pre><code ref="codeBlockRef" id="codeBlock" class="html">{{ codeContent }}</code></pre>
     </div>
     

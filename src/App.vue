@@ -2,7 +2,7 @@
   <div class="container">
     <h1>View Source Online</h1>
 
-    <!-- Controls Section -->
+    <!-- Controls -->
     <div class="controls">
       <input
         type="text"
@@ -14,7 +14,7 @@
       </button>
     </div>
 
-    <!-- Options Section -->
+    <!-- Options -->
     <div class="options">
       <label>
         <input
@@ -34,17 +34,16 @@
       </label>
     </div>
 
-    <!-- Status Section -->
+    <!-- Status -->
     <div id="status" v-html="statusMessage"></div>
 
-    <!-- Code Viewer Section -->
+    <!-- Code Viewer -->
     <div class="code-container">
       <div class="code-actions" :class="{ active: codeActionsActive }">
         <button @click="copyCode"><i class="fas fa-copy"></i> Salin</button>
         <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
       </div>
 
-      <!-- Penting: tambahkan hljs dan line-numbers -->
       <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs line-numbers">{{ codeContent }}</code></pre>
     </div>
 
@@ -58,21 +57,15 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
-
-// --- Highlight.js dan plugin line-numbers ---
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
-import "highlight.js/styles/github-dark.css"; // tema highlight (bisa ganti)
+import "highlight.js/styles/github-dark.css";
 import "highlightjs-line-numbers.js";
-import "highlightjs-line-numbers.js/dist/line-numbers.css"; // CSS nomor baris
-
-// --- Beautifier ---
 import htmlBeautify from "js-beautify";
 
-// --- Register bahasa HTML ---
+// Daftarkan bahasa HTML
 hljs.registerLanguage("html", xml);
 
-// --- State utama ---
 const urlInput = ref("https://example.com");
 const codeContent = ref("");
 const statusMessage = ref("");
@@ -83,12 +76,12 @@ const isLoading = ref(false);
 const codeBlockRef = ref(null);
 let lastBlobUrl = null;
 
-// --- Konstanta URL ---
+// Konstanta URL
 const DEFAULT_URL = "https://example.com";
 const FALLBACK_FETCH_PROXY = "https://api.allorigins.win/raw?url=";
 const LOCAL_PROXY_BASE_URL = "/proxy?url=";
 
-// --- Utilitas ---
+// Utilitas
 function showCodeActions(url) {
   codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
@@ -110,11 +103,10 @@ function cleanSourceCode(html) {
   return cleanedHtml.trim();
 }
 
-// --- Aksi tombol ---
+// Aksi tombol
 function copyCode() {
-  const codeText = codeContent.value;
   navigator.clipboard
-    .writeText(codeText)
+    .writeText(codeContent.value)
     .then(() => alert("Kode sumber berhasil disalin!"))
     .catch(() => alert("Gagal menyalin kode."));
 }
@@ -139,7 +131,7 @@ function downloadCode() {
   document.body.removeChild(link);
 }
 
-// --- Fetch kode sumber ---
+// Ambil kode sumber
 async function fetchSource(url) {
   if (!url) {
     statusMessage.value = "Masukkan URL yang valid.";
@@ -192,7 +184,6 @@ async function fetchSource(url) {
     });
 
     codeContent.value = formattedHtml;
-
     await nextTick();
 
     // Highlight dan line number
@@ -203,7 +194,6 @@ async function fetchSource(url) {
       }
     }
 
-    // Buat blob preview
     const baseTag = `<base href="${url}">`;
     const htmlWithBase = formattedHtml.replace(
       /<head[^>]*>/i,
@@ -226,7 +216,6 @@ async function fetchSource(url) {
   }
 }
 
-// --- Lifecycle ---
 onMounted(() => {
   fetchSource(urlInput.value.trim());
 });

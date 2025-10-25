@@ -1,12 +1,19 @@
-# Mengenal "View Source": Jendela Intip ke Balik Layar Website 🕵️
+# View Source: Apa & Mengapa?
 
-Setiap halaman yang Anda lihat di browser bukanlah gambar statis, melainkan dokumen yang dibangun dari kode. **"View Source"** (Lihat Sumber Kode) adalah fitur fundamental di setiap browser web yang memungkinkan kita melihat dokumen mentah di balik halaman web tersebut. Fitur ini seperti melihat cetak biru atau resep dari sebuah website.
+**View Source** adalah fitur browser untuk melihat kode mentah (HTML, CSS, JS) di balik halaman web.
 
-### Apa Itu Kode Sumber?
+**Apa yang Terlihat?**
 
-Kode sumber yang utama adalah **HTML (HyperText Markup Language)**. Selain HTML, Anda juga akan melihat tautan ke:
+**HTML:** Struktur dasar.
 
-**CSS (Cascading Style Sheets)**: Bertanggung jawab atas tampilan, layout, dan desain visual halaman.
+**CSS & JS:** Tautan ke tampilan dan fungsionalitas.
 
-**JavaScript (JS)**: Bertanggung jawab atas interaktivitas, animasi, dan fungsi dinamis.
+**Mengapa Penting?**
 
+**Debugging:** Mencari cepat kesalahan coding.
+
+**Belajar:** Mengintip teknik developer lain.
+
+**SEO:** Memverifikasi tag penting seperti title dan meta.
+
+Tool modern menambahkan fitur seperti **ukuran file** dan **kecepatan fetch** untuk analisis kinerja. **View Source** adalah jendela untuk memahami anatomi website. 🔎

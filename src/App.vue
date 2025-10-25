@@ -61,12 +61,18 @@ import { ref, onMounted, nextTick } from "vue";
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/github-dark.css";
-import lineNumbers from "highlightjs-line-numbers-es"; // <-- 1. IMPORT PLUGIN BARU
 import htmlBeautify from "js-beautify";
+
+// ======================================================================
+// FIX UNTUK PLUGIN LAMA (highlightjs-line-numbers.js)
+// 1. Jadikan hljs yang diimpor sebagai global agar plugin bisa menemukannya
+window.hljs = hljs;
+// 2. Impor plugin lama yang sekarang bisa menemukan window.hljs
+import "highlightjs-line-numbers.js";
+// ======================================================================
 
 // Daftarkan bahasa HTML
 hljs.registerLanguage("html", xml);
-hljs.addPlugin(lineNumbers()); // <-- 2. DAFTARKAN PLUGIN
 
 const urlInput = ref("https://example.com");
 const codeContent = ref("");
@@ -182,9 +188,18 @@ async function fetchSource(url) {
     codeContent.value = formattedHtml;
     await nextTick();
 
-    // Highlight. Plugin line number akan bekerja otomatis
+    // Highlight dan line number
     if (codeBlockRef.value) {
-      hljs.highlightElement(codeBlockRef.value); // <-- 3. CUKUP PANGGIL INI
+      // Jalankan highlighting terlebih dahulu
+      hljs.highlightElement(codeBlockRef.value);
+
+      // ======================================================================
+      // KEMBALIKAN PEMANGGILAN INI
+      // Panggil plugin line number secara manual setelah highlight selesai
+      if (typeof hljs.lineNumbersBlock === 'function') {
+        hljs.lineNumbersBlock(codeBlockRef.value);
+      }
+      // ======================================================================
     }
 
     // Base tag biar preview relatif tetap jalan

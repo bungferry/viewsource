@@ -1,3 +1,4 @@
+/* === STYLE DASAR === */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -58,7 +59,7 @@ button:hover {
 }
 
 pre {
-    background: #2d2d2d;
+    background: #161b22 !important;
     padding: 15px;
     border-radius: 6px;
     overflow-x: auto;
@@ -70,7 +71,7 @@ pre {
 /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
 pre code.hljs {
     padding-left: 10px !important;
-    background: #2d2d2d;
+    background: #161b22 !important;
 }
 
 .code-actions {
@@ -129,22 +130,58 @@ a:visited,
     text-decoration: underline;
 }
 
-/* --- CSS UNTUK LINE NUMBERS --- */
+.love {
+    color: #FF0000;
+    font-size: 13px;
+}
+
+/* === FIX WARNA HIGHLIGHT === */
+.hljs {
+    background: #161b22 !important;
+    color: #c9d1d9 !important;
+    font-family: "JetBrains Mono", "Fira Code", monospace;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* Warna kontras agar mirip GitHub Dark */
+.hljs-tag,
+.hljs-name {
+    color: #7ee787;
+}
+.hljs-attr {
+    color: #79c0ff;
+}
+.hljs-string {
+    color: #a5d6ff;
+}
+.hljs-comment {
+    color: #8b949e;
+    font-style: italic;
+}
+.hljs-keyword {
+    color: #ff7b72;
+}
+.hljs-title {
+    color: #d2a8ff;
+}
+
+/* === LINE NUMBER TABLE === */
+table.hljs-ln {
+    border-collapse: collapse;
+    width: 100%;
+}
+
 .hljs-ln-numbers {
     text-align: right;
     color: #8b949e;
-    border-right: 1px solid #8b949e;
+    border-right: 1px solid #30363d;
+    vertical-align: top;
     padding-right: 12px !important;
-    -webkit-user-select: none;
-    -moz-user-select: none;
     user-select: none;
 }
 
 .hljs-ln-code {
     padding-left: 12px !important;
-}
-
-.love {
-    color: #FF0000;
-    font-size: 13px;
+    color: #e6edf3;
 }

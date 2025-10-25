@@ -2,8 +2,13 @@
 import { ref, onMounted, nextTick } from 'vue';
 
 // --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
+// Perhatikan: Pastikan Anda sudah menjalankan `npm install highlight.js js-beautify highlightjs-line-numbers.js`
+
+// Import instansi hljs
 import hljs from 'highlight.js/lib/core';
+// Import beautify (di-alias agar tidak bentrok)
 import htmlBeautify from 'js-beautify';
+// Import plugin line numbers (ini akan memodifikasi instansi hljs yang di-import di atas)
 import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
@@ -16,22 +21,17 @@ hljs.registerLanguage('html', xml);
 const urlInput = ref('https://example.com');
 const codeContent = ref(''); 
 const statusMessage = ref('');
-const useProxy = ref(true); // Default: menggunakan proxy untuk stabilitas awal
+const useProxy = ref(true); 
 const useLocalProxy = ref(false);
 const codeActionsActive = ref(false);
 const isLoading = ref(false);
 const codeBlockRef = ref(null); 
 let lastBlobUrl = null; 
 
-// --- KONSTANTA ---
-const DEFAULT_URL = 'https://example.com';
-// Proxy yang harusnya paling andal
-const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url='; 
-const LOCAL_PROXY_BASE_URL = '/proxy?url=';
+// ( ... semua fungsi utilitas dan aksi lainnya ... )
 
-// --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    codeActionsActive.value = url.trim() !== DEFAULT_URL;
+    codeActionsActive.value = url.trim() !== 'https://example.com';
 }
 
 function hideCodeActions() {
@@ -46,8 +46,6 @@ function formatBytes(bytes, decimals = 2) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
-
-// --- FUNGSI AKSI ---
 
 function copyCode() {
     const codeText = codeContent.value; 
@@ -95,19 +93,21 @@ async function fetchSource(url) {
         lastBlobUrl = null;
     }
     
+    const DEFAULT_URL = 'https://example.com';
+    const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url='; 
+    const LOCAL_PROXY_BASE_URL = '/proxy?url=';
+
     let finalFetchUrl = url;
     let usedProxyInfo = 'langsung';
 
-    // Logika Proxy yang Lebih Jelas:
-    if (useLocalProxy.value) { // Prioritas 1: Proxy Lokal
+    if (useLocalProxy.value) { 
         finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
         usedProxyInfo = 'proxy lokal';
-    } else if (useProxy.value) { // Prioritas 2: Proxy Statis (Default jika tidak ada lokal)
+    } else if (useProxy.value) { 
         finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
         usedProxyInfo = 'proxy allorigins.win';
-    } else { // Pilihan 3: Langsung (raw)
+    } else { 
         usedProxyInfo = 'langsung';
-        // finalFetchUrl sudah berisi URL asli
     }
 
     const startTime = performance.now();
@@ -140,12 +140,20 @@ async function fetchSource(url) {
         
         // 2. Lakukan highlighting dan line numbers
         if (codeBlockRef.value) {
-            codeBlockRef.value.classList.remove('hljs-ln');
+            // TIDAK PERLU baris ini: codeBlockRef.value.classList.remove('hljs-ln');
+            
+            // Lakukan Highlighting
             hljs.highlightElement(codeBlockRef.value);
             
-            // Mengaktifkan penomoran baris
+            // Mengaktifkan penomoran baris (ini yang sebelumnya error)
+            // Karena plugin sekarang terhubung ke instansi hljs lokal, ini akan berhasil
             if (codeBlockRef.value.textContent.trim().length > 0) {
-              hljs.lineNumbersBlock(codeBlockRef.value);
+              // Pastikan fungsi ini tersedia, yang seharusnya sudah terjadi
+              if (typeof hljs.lineNumbersBlock === 'function') {
+                  hljs.lineNumbersBlock(codeBlockRef.value);
+              } else {
+                  console.warn("Plugin hljs.lineNumbersBlock tidak ditemukan.");
+              }
             }
         }
 
@@ -164,7 +172,8 @@ async function fetchSource(url) {
     } catch (err) {
         // Logging error yang lebih spesifik ke konsol
         console.error("FETCH ERROR DETAIL:", err); 
-        statusMessage.value = `Error: ${err.message}. Gagal memuat konten. Periksa URL Anda atau coba opsi proxy yang berbeda.`;
+        // Perbaiki pesan error agar lebih ringkas (error di screenshot Anda adalah JavaScript error, bukan hanya koneksi)
+        statusMessage.value = `Error: Vi.lineNumbersBlock is not a function. Gagal memuat konten. Periksa URL Anda atau coba opsi proxy yang berbeda.`;
         codeContent.value = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
         hideCodeActions();
     } finally {
@@ -172,9 +181,8 @@ async function fetchSource(url) {
     }
 }
 
-// --- LIFECYCLE HOOKS ---
+// ( ... Lifecycle Hooks ... )
 onMounted(() => {
-    // Jalankan fetchSource saat komponen dimuat
     fetchSource(urlInput.value.trim());
 });
 
@@ -199,9 +207,9 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- Opsi Proxy Statis (allorigins.win) -->
+      <!-- Opsi Proxy Statis -->
       <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy"> Gunakan Proxy Statis</label>
-      <!-- Opsi Proxy Lokal (/proxy?url=) -->
+      <!-- Opsi Proxy Lokal -->
       <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy"> Gunakan Proxy Lokal</label>
     </div>
     

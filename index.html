@@ -16,7 +16,6 @@
     button {background: #238636; color: white; cursor: pointer;}
     button:hover {background: #2ea043;}
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
-    /* .options dihilangkan, namun tetap dipertahankan untuk styling umum jika ada elemen lain */
     .options {margin-bottom: 15px;} 
 
     .code-container {
@@ -100,7 +99,7 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      </div>
+    </div>
     <div id="status"></div>
     <div class="code-container">
         <div class="code-actions" id="codeActions">
@@ -122,14 +121,12 @@
     const status = document.getElementById('status');
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
-    // const showPreview = document.getElementById('showPreview'); // Dihapus
     const codeActions = document.getElementById('codeActions');
 
     const DEFAULT_URL = 'https://example.com';
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
     
-    // Variabel global untuk menyimpan URL Blob terakhir yang dibuat
     let lastBlobUrl = null; 
 
     function showCodeActions(url) {
@@ -238,18 +235,17 @@
         hljs.highlightElement(codeBlock);
         hljs.lineNumbersBlock(codeBlock);
 
-        // --- PEMBUATAN DAN PENAMPILAN URL BLOB ---
+        // --- PEMBUATAN URL BLOB ---
         const baseTag = `<base href="${url}">`;
         const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
         const blob = new Blob([htmlWithBase], { type: 'text/html' });
         const previewBlobUrl = URL.createObjectURL(blob);
-        lastBlobUrl = previewBlobUrl; // Simpan URL blob
+        lastBlobUrl = previewBlobUrl; 
         
-        // Buat pesan status dengan tautan blob
-        const statusMessage = `Fetched ${formattedSize} in ${duration} seconds. Sumber: ${url}. 
-            Preview: <a href="${previewBlobUrl}" target="_blank">${previewBlobUrl.substring(0, 40)}...</a>`;
+        // --- PEMBARUAN STATUS DENGAN LINK BLOB TERSEMBUNYI ---
+        const statusMessage = `Fetched ${formattedSize} in ${duration} seconds. Sumber Preview: <a href="${previewBlobUrl}" target="_blank">${url}</a>`;
             
-        status.innerHTML = statusMessage; // Gunakan innerHTML untuk menampilkan tautan
+        status.innerHTML = statusMessage; // Menggunakan innerHTML untuk menampilkan tautan
 
         showCodeActions(url);
 
@@ -273,7 +269,7 @@
       fetchSource(url);
     });
 
-    // Revoke URL Blob saat halaman ditutup/di-unload untuk membersihkan memori
+    // Revoke URL Blob saat halaman ditutup/di-unload 
     window.addEventListener('unload', () => {
         if (lastBlobUrl) {
             URL.revokeObjectURL(lastBlobUrl);
@@ -282,4 +278,4 @@
 
   </script>
 </body>
-    </html>
+  </html>

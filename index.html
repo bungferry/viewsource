@@ -81,7 +81,7 @@
 
     const DEFAULT_URL = 'https://example.com';
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
-    const LOCAL_PROXY_BASE_URL = 'https://lihat-sumber.vercel.app/api/proxy?url='; // ← sudah diubah
+    const LOCAL_PROXY_BASE_URL = 'https://lihat-sumber.vercel.app/api/proxy?url=';
 
     let lastBlobUrl = null;
 
@@ -154,7 +154,12 @@
         hljs.highlightElement(codeBlock);
         hljs.lineNumbersBlock(codeBlock);
         showCodeActions(url);
-        status.innerHTML = `Fetched ${formattedSize} in ${duration}s dari ${usedProxyInfo}`;
+
+        // ✅ Tambahan: buat blob preview
+        const blob = new Blob([html], { type: "text/html" });
+        lastBlobUrl = URL.createObjectURL(blob);
+        status.innerHTML = `Fetched ${formattedSize} in ${duration}s dari ${usedProxyInfo} | <a href="${lastBlobUrl}" target="_blank">${url}</a>`;
+
       } catch (err) {
         status.textContent = `Error: ${err.message}`;
         codeBlock.textContent = 'Gagal memuat konten.';

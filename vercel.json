@@ -1,7 +1,17 @@
 {
   "version": 2,
+  "functions": {
+    "api/proxy.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "routes": [
+    { "src": "/favicon\\.png", "dest": "/favicon.png" },
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
+    { "src": "/", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  ],
+  "staticFiles": {
+    "include": ["favicon.png"]
+  }
 }

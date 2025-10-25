@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 
-// --- IMPORT LIBRARY EXTERNAL ---
+// --- IMPORT LIBRARY EXTERNAL (Pastikan sudah di-install via npm/yarn) ---
 import hljs from 'highlight.js/lib/core';
 import htmlBeautify from 'js-beautify';
 import 'highlightjs-line-numbers.js'; 
@@ -48,8 +48,7 @@ function formatBytes(bytes, decimals = 2) {
 
 /**
  * Menghapus tag <style> dan <script> dari kode sumber HTML yang diambil.
- * Ini mencegah konflik styling dan script highlighting dari sumber eksternal
- * yang bisa mengganggu Highlight.js lokal.
+ * Ini mencegah konflik styling dan script highlighting dari sumber eksternal.
  */
 function cleanSourceCode(html) {
     let cleanedHtml = html;
@@ -164,7 +163,6 @@ async function fetchSource(url) {
             
             // Mengaktifkan penomoran baris
             if (codeBlockRef.value.textContent.trim().length > 0) {
-                // Pastikan fungsi lineNumbersBlock tersedia
                 if (typeof hljs.lineNumbersBlock === 'function') {
                     hljs.lineNumbersBlock(codeBlockRef.value);
                 } else {
@@ -174,7 +172,6 @@ async function fetchSource(url) {
         }
 
         // --- PEMBUATAN URL BLOB ---
-        // Catatan: Base tag harus ditambahkan ke HTML yang sudah di-beautify
         const baseTag = `<base href="${url}">`;
         const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
         const blob = new Blob([htmlWithBase], { type: 'text/html' });
@@ -214,6 +211,7 @@ window.addEventListener('unload', () => {
     
     <!-- Controls Section -->
     <div class="controls">
+      <!-- Tag input ini adalah tag tanpa penutup, perlu self-closing slash di Vue -->
       <input type="text" v-model="urlInput" placeholder="https://example.com" />
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
@@ -222,10 +220,9 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- Opsi Proxy Statis (allorigins.win) -->
-      <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy"> Gunakan Proxy Statis</label>
-      <!-- Opsi Proxy Lokal (/proxy?url=) -->
-      <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy"> Gunakan Proxy Lokal</label>
+      <!-- PERBAIKAN: Tag <input> sekarang menggunakan self-closing slash (/>) untuk mencegah SyntaxError -->
+      <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy" /> Gunakan Proxy Statis</label>
+      <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy" /> Gunakan Proxy Lokal</label>
     </div>
     
     <!-- Status Section (v-html untuk menampilkan link) -->
@@ -237,7 +234,6 @@ window.addEventListener('unload', () => {
             <button @click="copyCode"><i class="fas fa-copy"></i> Salin</button>
             <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
         </div>
-        <!-- Catatan: Class 'html' penting untuk highlighting yang benar -->
         <pre><code ref="codeBlockRef" id="codeBlock" class="html">{{ codeContent }}</code></pre>
     </div>
     

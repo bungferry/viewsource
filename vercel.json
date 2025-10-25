@@ -2,6 +2,7 @@
   "version": 2,
   "routes": [
     { "src": "/api/proxy", "dest": "/api/proxy.js" },
+    { "src": "/favicon.png", "dest": "/favicon.png" },  // <-- Tambahkan ini
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

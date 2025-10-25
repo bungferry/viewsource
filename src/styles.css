@@ -1,189 +1,207 @@
 /* === STYLE DASAR === */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #0d1117;
-    color: #c9d1d9; /* Warna disesuaikan dengan tema highlight */
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #0d1117;
+  color: #c9d1d9;
 }
 
 .container {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 15px;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 15px;
 }
 
 h1 {
-    font-size: 22px;
-    margin-bottom: 10px;
+  font-size: 22px;
+  margin-bottom: 10px;
 }
 
 input,
 button {
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    font-size: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 15px;
 }
 
 input[type=text] {
-    flex: 1;
-    background: #161b22;
-    color: #e6edf3;
-    border: 1px solid #30363d;
+  flex: 1;
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
 }
 
 button {
-    background: #238636;
-    color: white;
-    cursor: pointer;
+  background: #238636;
+  color: white;
+  cursor: pointer;
 }
 
 button:hover {
-    background: #2ea043;
+  background: #2ea043;
 }
 
 .controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .options {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .code-container {
-    position: relative;
-    margin-bottom: 10px;
+  position: relative;
+  margin-bottom: 10px;
 }
 
+/* Pastikan padding cukup agar line number tidak menimpa teks */
 pre {
-    background: #161b22 !important;
-    padding: 15px;
-    border-radius: 6px;
-    overflow-x: auto;
-    margin: 0;
-    min-height: 200px;
-    padding-top: 20px;
+  background: #161b22 !important;
+  padding: 15px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0;
+  min-height: 200px;
+  padding-top: 20px;
+  position: relative;
 }
 
-/* Ganti padding untuk code agar tidak terpotong oleh line numbers */
+/* style untuk code hljs */
 pre code.hljs {
-    padding-left: 10px !important;
-    background: #161b22 !important;
+  padding-left: 12px !important;
+  background: #161b22 !important;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  display: block;
 }
 
+/* Style untuk action buttons */
 .code-actions {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    display: none;
-    gap: 5px;
-    z-index: 10;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  gap: 5px;
+  z-index: 10;
 }
 
 .code-actions.active {
-    display: flex;
+  display: flex;
 }
 
 .code-actions button {
-    background: #30363d;
-    border: 1px solid #8b949e;
-    color: #c9d1d9;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: background 0.2s;
+  background: #30363d;
+  border: 1px solid #8b949e;
+  color: #c9d1d9;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background 0.2s;
 }
 
 .code-actions button:hover {
-    background: #484f58;
+  background: #484f58;
 }
 
 .code-actions button i {
-    margin-right: 5px;
+  margin-right: 5px;
 }
 
 label {
-    font-size: 14px;
-    margin-right: 10px;
+  font-size: 14px;
+  margin-right: 10px;
 }
 
 #status,
 footer {
-    font-size: 13px;
-    color: #8b949e;
-    margin-top: 8px;
-    margin-bottom: 10px;
+  font-size: 13px;
+  color: #8b949e;
+  margin-top: 8px;
+  margin-bottom: 10px;
 }
 
-/* Tambahan style untuk tautan di status agar kontras */
+/* Link style */
 a:link,
 a:visited,
 #status a {
-    color: #2ea043;
-    text-decoration: none;
+  color: #2ea043;
+  text-decoration: none;
 }
 
 #status a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .love {
-    color: #FF0000;
-    font-size: 13px;
+  color: #FF0000;
+  font-size: 13px;
 }
 
 /* === FIX WARNA HIGHLIGHT === */
 .hljs {
-    background: #161b22 !important;
-    color: #c9d1d9 !important; /* Warna teks default */
-    font-family: "JetBrains Mono", "Fira Code", monospace;
-    line-height: 1.6;
-    font-size: 14px;
+  background: #161b22 !important;
+  color: #c9d1d9 !important;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  line-height: 1.6;
+  font-size: 14px;
 }
 
-/* Warna kontras agar mirip GitHub Dark */
+/* Warna kontras untuk syntax */
 .hljs-tag,
 .hljs-name {
-    color: #7ee787;
+  color: #7ee787;
 }
 .hljs-attr {
-    color: #79c0ff;
+  color: #79c0ff;
 }
 .hljs-string {
-    color: #a5d6ff;
+  color: #a5d6ff;
 }
 .hljs-comment {
-    color: #8b949e;
-    font-style: italic;
+  color: #8b949e;
+  font-style: italic;
 }
 .hljs-keyword {
-    color: #ff7b72;
+  color: #ff7b72;
 }
 .hljs-title {
-    color: #d2a8ff;
+  color: #d2a8ff;
 }
 
 /* === LINE NUMBER TABLE === */
-/* Styling untuk plugin line-numbers */
 table.hljs-ln {
-    border-collapse: collapse;
-    width: 100%;
-    border: none;
+  border-collapse: collapse;
+  width: 100%;
+  border: none;
+  margin: 0;
+  padding: 0;
 }
 
+/* Nomor baris */
 .hljs-ln-numbers {
-    text-align: right;
-    color: #8b949e;
-    border-right: 1px solid #30363d;
-    vertical-align: top;
-    padding-right: 12px !important;
-    user-select: none;
+  text-align: right;
+  color: #8b949e;
+  border-right: 1px solid #30363d;
+  vertical-align: top;
+  padding-right: 12px !important;
+  user-select: none;
+  font-family: "Fira Mono", monospace;
+  font-size: 13px;
 }
 
+/* Kode baris */
 .hljs-ln-code {
-    padding-left: 12px !important;
-    /* PROPERTI 'color' DIHAPUS DARI SINI UNTUK MEMPERBAIKI HIGHLIGHTING */
+  padding-left: 12px !important;
+  /* Warna teks diatur di class hljs */
 }
+
+/* Jika perlu, tambahkan style untuk garis nomor agar tampil lebih kontras */
+.hljs-ln-numbers span {
+  display: block;
+  padding: 2px 0;
+    }

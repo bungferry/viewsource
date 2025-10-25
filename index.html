@@ -16,25 +16,25 @@
     button {background: #238636; color: white; cursor: pointer;}
     button:hover {background: #2ea043;}
     .controls {display: flex; gap: 8px; margin-bottom: 10px;}
-    .options {margin-bottom: 15px;}
+    /* .options dihilangkan, namun tetap dipertahankan untuk styling umum jika ada elemen lain */
+    .options {margin-bottom: 15px;} 
 
     .code-container {
         position: relative;
         margin-bottom: 10px;
     }
     pre {
-        background: #2d2d2d;
-        padding: 15px; 
+        background: #161b22;
+        padding: 15px;
         border-radius: 6px;
         overflow-x: auto;
         margin: 0;
         min-height: 200px;
-        padding-top: 20px;
+        padding-top: 40px;
     }
     /* Ganti padding untuk code agar tidak terpotong oleh line numbers */
     pre code.hljs {
         padding-left: 10px !important;
-      background: #2d2d2d;
     }
 
 
@@ -51,7 +51,6 @@
     }
     .code-actions button {
         background: #30363d;
-        border: 1px solid #8b949e;
         color: #c9d1d9;
         padding: 5px 10px;
         border-radius: 4px;
@@ -67,12 +66,20 @@
 
     label {font-size: 14px; margin-right: 10px;}
     #status, footer {font-size: 13px; color: #8b949e; margin-top: 8px; margin-bottom: 10px;}
+    /* Tambahan style untuk tautan di status agar kontras */
+    #status a {
+        color: #2ea043; 
+        text-decoration: none;
+    }
+    #status a:hover {
+        text-decoration: underline;
+    }
 
-    /* --- CSS UNTUK LINE NUMBERS (DITAMBAHKAN) --- */
+    /* --- CSS UNTUK LINE NUMBERS --- */
     .hljs-ln-numbers {
         text-align: right;
-        color: #8b949e; /* Warna abu-abu yang tidak mencolok */
-        border-right: 1px solid #8b949e;
+        color: #8b949e; 
+        border-right: 1px solid #30363d;
         padding-right: 12px !important;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -93,8 +100,7 @@
     <div class="options">
       <label><input type="checkbox" id="useProxy" checked> Gunakan Proxy Statis</label>
       <label><input type="checkbox" id="useLocalProxy"> Gunakan Proxy Lokal</label>
-      <label><input type="checkbox" id="showPreview"> Tampilkan Preview di Tab Baru</label>
-    </div>
+      </div>
     <div id="status"></div>
     <div class="code-container">
         <div class="code-actions" id="codeActions">
@@ -116,12 +122,15 @@
     const status = document.getElementById('status');
     const useProxy = document.getElementById('useProxy');
     const useLocalProxy = document.getElementById('useLocalProxy');
-    const showPreview = document.getElementById('showPreview');
+    // const showPreview = document.getElementById('showPreview'); // Dihapus
     const codeActions = document.getElementById('codeActions');
 
     const DEFAULT_URL = 'https://example.com';
     const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url=';
     const LOCAL_PROXY_BASE_URL = '/proxy?url=';
+    
+    // Variabel global untuk menyimpan URL Blob terakhir yang dibuat
+    let lastBlobUrl = null; 
 
     function showCodeActions(url) {
         if (url.trim() !== DEFAULT_URL) codeActions.classList.add('active');
@@ -165,7 +174,7 @@
     window.copyCode = copyCode;
     window.downloadCode = downloadCode;
     
-    // --- FUNGSI BARU: Mengubah Byte ke format KB/MB yang mudah dibaca ---
+    // --- FUNGSI Mengubah Byte ke format KB/MB yang mudah dibaca ---
     function formatBytes(bytes, decimals = 2) {
         if (bytes === 0) return '0 Bytes';
 
@@ -182,6 +191,13 @@
     async function fetchSource(url) {
       codeBlock.textContent = '';
       hideCodeActions();
+      
+      // Hapus URL blob lama sebelum fetch baru
+      if (lastBlobUrl) {
+          URL.revokeObjectURL(lastBlobUrl);
+          lastBlobUrl = null;
+      }
+      
       let finalFetchUrl = url;
       let usedProxyInfo = 'langsung';
 
@@ -193,37 +209,23 @@
           usedProxyInfo = 'proxy lokal';
       }
 
-      // --- TITIK MULAI PENGHITUNGAN WAKTU ---
       const startTime = performance.now();
-      // -------------------------------------
       
       try {
         status.textContent = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
         const res = await fetch(finalFetchUrl);
         
-        // --- TITIK SELESAI PENGHITUNGAN WAKTU ---
         const endTime = performance.now();
-        const duration = ((endTime - startTime) / 1000).toFixed(6); // Durasi dalam detik, 6 desimal
-        // ---------------------------------------
+        const duration = ((endTime - startTime) / 1000).toFixed(6);
 
         if (!res.ok) throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
         
-        // Kloning respons untuk mendapatkan header Content-Length jika ada.
-        // Namun, karena AllOrigins/proxy mungkin tidak meneruskan header ini dengan benar,
-        // kita akan mengukur **ukuran teks hasil** setelah di-fetch.
         const html = await res.text();
         
-        // --- PENGHITUNGAN UKURAN KONTEN ---
-        // Menggunakan TextEncoder untuk mendapatkan ukuran byte yang lebih akurat (UTF-8)
         const encoder = new TextEncoder();
         const byteLength = encoder.encode(html).length;
         const formattedSize = formatBytes(byteLength);
-        // ---------------------------------
         
-        // --- PEMBARUAN STATUS DENGAN UKURAN DAN KECEPATAN ---
-        status.textContent = `Fetched ${formattedSize} in ${duration} seconds. Sumber: ${url}`;
-        // ----------------------------------------------------
-
         const formattedHtml = html_beautify(html, {
             indent_size: 2,
             space_in_empty_paren: true,
@@ -232,22 +234,25 @@
 
         codeBlock.textContent = formattedHtml;
         
-        // Lakukan highlighting terlebih dahulu
+        // Lakukan highlighting dan line numbers
         hljs.highlightElement(codeBlock);
-        
-        // PANGGIL PLUGIN LINE NUMBERS SETELAH HIGHLIGHTING (DITAMBAHKAN)
         hljs.lineNumbersBlock(codeBlock);
+
+        // --- PEMBUATAN DAN PENAMPILAN URL BLOB ---
+        const baseTag = `<base href="${url}">`;
+        const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
+        const blob = new Blob([htmlWithBase], { type: 'text/html' });
+        const previewBlobUrl = URL.createObjectURL(blob);
+        lastBlobUrl = previewBlobUrl; // Simpan URL blob
+        
+        // Buat pesan status dengan tautan blob
+        const statusMessage = `Fetched ${formattedSize} in ${duration} seconds. Sumber: ${url}. 
+            Preview: <a href="${previewBlobUrl}" target="_blank">${previewBlobUrl.substring(0, 40)}...</a>`;
+            
+        status.innerHTML = statusMessage; // Gunakan innerHTML untuk menampilkan tautan
 
         showCodeActions(url);
 
-        if (showPreview.checked) {
-            const baseTag = `<base href="${url}">`;
-            const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
-            const blob = new Blob([htmlWithBase], { type: 'text/html' });
-            const previewBlobUrl = URL.createObjectURL(blob);
-            window.open(previewBlobUrl, '_blank');
-            status.textContent += ` | Preview lokal dibuat di tab baru.`;
-        }
       } catch (err) {
         status.textContent = `Error: ${err.message}. Gagal mengambil sumber dari ${url}`;
         codeBlock.textContent = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
@@ -267,6 +272,14 @@
       }
       fetchSource(url);
     });
+
+    // Revoke URL Blob saat halaman ditutup/di-unload untuk membersihkan memori
+    window.addEventListener('unload', () => {
+        if (lastBlobUrl) {
+            URL.revokeObjectURL(lastBlobUrl);
+        }
+    });
+
   </script>
 </body>
-  </html>
+    </html>

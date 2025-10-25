@@ -45,7 +45,9 @@
         <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
       </div>
 
-      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs">{{ codeContent }}</code></pre>
+      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs">
+{{ codeContent }}
+</code></pre>
     </div>
 
     <footer>
@@ -57,21 +59,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted } from "vue";
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/github-dark.css";
-import htmlBeautify from "js-beautify";
-
-// ======================================================================
-// FIX UNTUK PLUGIN LAMA (highlightjs-line-numbers.js)
-// 1. Jadikan hljs yang diimpor sebagai global agar plugin bisa menemukannya
-window.hljs = hljs;
-// 2. Impor plugin lama yang sekarang bisa menemukan window.hljs
 import "highlightjs-line-numbers.js";
-// ======================================================================
 
-// Daftarkan bahasa HTML
+// Register language
 hljs.registerLanguage("html", xml);
 
 const urlInput = ref("https://example.com");
@@ -84,152 +78,76 @@ const isLoading = ref(false);
 const codeBlockRef = ref(null);
 let lastBlobUrl = null;
 
-// URL Konstanta
-const DEFAULT_URL = "https://example.com";
-const FALLBACK_FETCH_PROXY = "https://api.allorigins.win/raw?url=";
-const LOCAL_PROXY_BASE_URL = "/proxy?url=";
-
-// Fungsi bantu
-function showCodeActions(url) {
-  codeActionsActive.value = url.trim() !== DEFAULT_URL;
-}
-function hideCodeActions() {
-  codeActionsActive.value = false;
-}
-function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-}
-
-// Salin kode
-function copyCode() {
-  navigator.clipboard
-    .writeText(codeContent.value)
-    .then(() => alert("Kode sumber berhasil disalin!"))
-    .catch(() => alert("Gagal menyalin kode."));
-}
-
-// Unduh kode
-function downloadCode() {
-  const codeText = codeContent.value;
-  const url = urlInput.value.trim();
-  let fileName = "source.html";
-  try {
-    const urlObj = new URL(url);
-    fileName = urlObj.pathname.split("/").pop() || "source.html";
-    if (!fileName.includes(".")) fileName += ".html";
-  } catch {
-    fileName = "source.html";
-  }
-  const blob = new Blob([codeText], { type: "text/html" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// Ambil kode sumber
+// Fungsi fetchSource
 async function fetchSource(url) {
   if (!url) {
-    statusMessage.value = "Masukkan URL yang valid.";
+    statusMessage.value = "URL tidak valid.";
     return;
   }
-
   isLoading.value = true;
+  statusMessage.value = "Memuat sumber...";
   codeContent.value = "";
-  hideCodeActions();
-  statusMessage.value = "";
-
-  if (lastBlobUrl) {
-    URL.revokeObjectURL(lastBlobUrl);
-    lastBlobUrl = null;
-  }
-
-  let finalFetchUrl = url;
-  let usedProxyInfo = "langsung";
-
-  if (useLocalProxy.value) {
-    finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
-    usedProxyInfo = "proxy lokal";
-  } else if (useProxy.value) {
-    finalFetchUrl = FALLBACK_FETCH_PROXY + encodeURIComponent(url);
-    usedProxyInfo = "proxy allorigins.win";
-  }
-
-  const startTime = performance.now();
-
   try {
-    statusMessage.value = `Mengambil kode sumber dari ${url} (melalui ${usedProxyInfo})...`;
-    const res = await fetch(finalFetchUrl);
-    const endTime = performance.now();
-    const duration = ((endTime - startTime) / 1000).toFixed(6);
-
-    if (!res.ok)
-      throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
-
-    const html = await res.text();
-    const cleanedHtml = html.trim();
-    const encoder = new TextEncoder();
-    const byteLength = encoder.encode(cleanedHtml).length;
-    const formattedSize = formatBytes(byteLength);
-
-    const formattedHtml = htmlBeautify.html_beautify(cleanedHtml, {
-      indent_size: 2,
-      space_in_empty_paren: true,
-      end_with_newline: true,
-    });
-
-    codeContent.value = formattedHtml;
-    await nextTick();
-
-    // Highlight dan line number
-    if (codeBlockRef.value) {
-      // Jalankan highlighting terlebih dahulu
-      hljs.highlightElement(codeBlockRef.value);
-
-      // ======================================================================
-      // KEMBALIKAN PEMANGGILAN INI
-      // Panggil plugin line number secara manual setelah highlight selesai
-      if (typeof hljs.lineNumbersBlock === 'function') {
-        hljs.lineNumbersBlock(codeBlockRef.value);
-      }
-      // ======================================================================
+    const response = await fetchSourceFromUrl(url);
+    if (response) {
+      codeContent.value = response;
+      // Setelah update DOM, lakukan highlight
+      await nextTick();
+      hljs.highlightBlock(codeBlockRef.value);
+      // Aktifkan line number
+      hljs.lineNumbersBlock(codeBlockRef.value);
+      // Tampilkan aksi
+      toggleCodeActions(true);
+      statusMessage.value = "Sumber berhasil dimuat.";
+    } else {
+      statusMessage.value = "Gagal memuat sumber.";
     }
-
-    // Base tag biar preview relatif tetap jalan
-    const baseTag = `<base href="${url}">`;
-    const htmlWithBase = formattedHtml.replace(
-      /<head[^>]*>/i,
-      `$&${baseTag}`
-    );
-    const blob = new Blob([htmlWithBase], { type: "text/html" });
-    const previewBlobUrl = URL.createObjectURL(blob);
-    lastBlobUrl = previewBlobUrl;
-
-    statusMessage.value = `Fetched ${formattedSize} in ${duration} seconds. <br> Sumber Preview: <a href="${previewBlobUrl}" target="_blank">${url}</a>`;
-
-    showCodeActions(url);
-  } catch (err) {
-    console.error("FETCH ERROR:", err);
-    statusMessage.value = `Error: ${err.message}. Gagal memuat konten.`;
-    codeContent.value = "Gagal memuat konten.";
-    hideCodeActions();
+  } catch (error) {
+    statusMessage.value = "Error: " + error.message;
   } finally {
     isLoading.value = false;
   }
 }
 
+// Fungsi fetch dari URL
+async function fetchSourceFromUrl(url) {
+  // di sini bisa menyesuaikan proxy jika perlu
+  const response = await fetch(url);
+  if (response.ok) {
+    return await response.text();
+  }
+  throw new Error("Gagal fetch");
+}
+
+// Fungsi copy code
+function copyCode() {
+  navigator.clipboard.writeText(codeContent.value).then(() => {
+    alert("Kode disalin!");
+  });
+}
+
+// Fungsi download code
+function downloadCode() {
+  const blob = new Blob([codeContent.value], { type: "text/plain" });
+  if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+  lastBlobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = lastBlobUrl;
+  a.download = "source.html";
+  a.click();
+}
+
+// Toggle aksi tombol
+function toggleCodeActions(show) {
+  codeActionsActive.value = show;
+}
+
 onMounted(() => {
   fetchSource(urlInput.value.trim());
 });
-
-window.addEventListener("unload", () => {
-  if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
-});
 </script>
+
+<style scoped>
+/* Tambahkan CSS dari styles.css disini, atau import dari file eksternal */
+@import './styles.css';
+</style>

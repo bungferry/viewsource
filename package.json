@@ -1,0 +1,11 @@
+{
+  "name": "view-source-tool",
+  "version": "1.0.0",
+  "description": "Alat online untuk melihat dan memformat kode sumber website",
+  "main": "index.html",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}

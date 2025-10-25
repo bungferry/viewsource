@@ -4,9 +4,9 @@
 
 **Apa yang Terlihat?**
 
-**HTML:** Struktur dasar.
+* **HTML:** Struktur dasar.
 
-**CSS & JS:** Tautan ke tampilan dan fungsionalitas.
+* **CSS & JS:** Tautan ke tampilan dan fungsionalitas.
 
 **Mengapa Penting?**
 

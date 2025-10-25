@@ -1,14 +1,9 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 
-// --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
-// Perhatikan: Pastikan Anda sudah menjalankan `npm install highlight.js js-beautify highlightjs-line-numbers.js`
-
-// Import instansi hljs
+// --- IMPORT LIBRARY EXTERNAL ---
 import hljs from 'highlight.js/lib/core';
-// Import beautify (di-alias agar tidak bentrok)
 import htmlBeautify from 'js-beautify';
-// Import plugin line numbers (ini akan memodifikasi instansi hljs yang di-import di atas)
 import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
@@ -28,10 +23,14 @@ const isLoading = ref(false);
 const codeBlockRef = ref(null); 
 let lastBlobUrl = null; 
 
-// ( ... semua fungsi utilitas dan aksi lainnya ... )
+// --- KONSTANTA ---
+const DEFAULT_URL = 'https://example.com';
+const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url='; 
+const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
+// --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    codeActionsActive.value = url.trim() !== 'https://example.com';
+    codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
 
 function hideCodeActions() {
@@ -46,6 +45,25 @@ function formatBytes(bytes, decimals = 2) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
+
+/**
+ * Menghapus tag <style> dan <script> dari kode sumber HTML yang diambil.
+ * Ini mencegah konflik styling dan script highlighting dari sumber eksternal
+ * yang bisa mengganggu Highlight.js lokal.
+ */
+function cleanSourceCode(html) {
+    let cleanedHtml = html;
+
+    // Hapus semua tag <style> ... </style> (case-insensitive, multiline)
+    cleanedHtml = cleanedHtml.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '');
+    
+    // Hapus semua tag <script> ... </script> (case-insensitive, multiline)
+    cleanedHtml = cleanedHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+    
+    return cleanedHtml.trim();
+}
+
+// --- FUNGSI AKSI ---
 
 function copyCode() {
     const codeText = codeContent.value; 
@@ -93,13 +111,10 @@ async function fetchSource(url) {
         lastBlobUrl = null;
     }
     
-    const DEFAULT_URL = 'https://example.com';
-    const FALLBACK_FETCH_PROXY = 'https://api.allorigins.win/raw?url='; 
-    const LOCAL_PROXY_BASE_URL = '/proxy?url=';
-
     let finalFetchUrl = url;
     let usedProxyInfo = 'langsung';
 
+    // Logika Proxy yang Lebih Jelas:
     if (useLocalProxy.value) { 
         finalFetchUrl = LOCAL_PROXY_BASE_URL + encodeURIComponent(url);
         usedProxyInfo = 'proxy lokal';
@@ -123,11 +138,15 @@ async function fetchSource(url) {
         
         const html = await res.text();
         
+        // --- LANGKAH PERBAIKAN: Bersihkan kode sumber dari Style/Script internal ---
+        const cleanedHtml = cleanSourceCode(html);
+
         const encoder = new TextEncoder();
-        const byteLength = encoder.encode(html).length;
+        const byteLength = encoder.encode(cleanedHtml).length;
         const formattedSize = formatBytes(byteLength);
         
-        const formattedHtml = htmlBeautify.html_beautify(html, {
+        // Gunakan kode yang sudah bersih untuk di-beautify
+        const formattedHtml = htmlBeautify.html_beautify(cleanedHtml, {
             indent_size: 2,
             space_in_empty_paren: true,
             end_with_newline: true
@@ -140,24 +159,22 @@ async function fetchSource(url) {
         
         // 2. Lakukan highlighting dan line numbers
         if (codeBlockRef.value) {
-            // TIDAK PERLU baris ini: codeBlockRef.value.classList.remove('hljs-ln');
-            
             // Lakukan Highlighting
             hljs.highlightElement(codeBlockRef.value);
             
-            // Mengaktifkan penomoran baris (ini yang sebelumnya error)
-            // Karena plugin sekarang terhubung ke instansi hljs lokal, ini akan berhasil
+            // Mengaktifkan penomoran baris
             if (codeBlockRef.value.textContent.trim().length > 0) {
-              // Pastikan fungsi ini tersedia, yang seharusnya sudah terjadi
-              if (typeof hljs.lineNumbersBlock === 'function') {
-                  hljs.lineNumbersBlock(codeBlockRef.value);
-              } else {
-                  console.warn("Plugin hljs.lineNumbersBlock tidak ditemukan.");
-              }
+                // Pastikan fungsi lineNumbersBlock tersedia
+                if (typeof hljs.lineNumbersBlock === 'function') {
+                    hljs.lineNumbersBlock(codeBlockRef.value);
+                } else {
+                    console.warn("Plugin hljs.lineNumbersBlock tidak ditemukan.");
+                }
             }
         }
 
         // --- PEMBUATAN URL BLOB ---
+        // Catatan: Base tag harus ditambahkan ke HTML yang sudah di-beautify
         const baseTag = `<base href="${url}">`;
         const htmlWithBase = formattedHtml.replace(/<head[^>]*>/i, `$&${baseTag}`);
         const blob = new Blob([htmlWithBase], { type: 'text/html' });
@@ -170,10 +187,8 @@ async function fetchSource(url) {
         showCodeActions(url);
 
     } catch (err) {
-        // Logging error yang lebih spesifik ke konsol
         console.error("FETCH ERROR DETAIL:", err); 
-        // Perbaiki pesan error agar lebih ringkas (error di screenshot Anda adalah JavaScript error, bukan hanya koneksi)
-        statusMessage.value = `Error: Vi.lineNumbersBlock is not a function. Gagal memuat konten. Periksa URL Anda atau coba opsi proxy yang berbeda.`;
+        statusMessage.value = `Error: ${err.message}. Gagal memuat konten. Periksa URL Anda atau coba opsi proxy yang berbeda.`;
         codeContent.value = 'Gagal memuat konten. Periksa URL dan koneksi Anda, atau coba proxy lain.';
         hideCodeActions();
     } finally {
@@ -181,7 +196,7 @@ async function fetchSource(url) {
     }
 }
 
-// ( ... Lifecycle Hooks ... )
+// --- LIFECYCLE HOOKS ---
 onMounted(() => {
     fetchSource(urlInput.value.trim());
 });
@@ -207,9 +222,9 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- Opsi Proxy Statis -->
+      <!-- Opsi Proxy Statis (allorigins.win) -->
       <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy"> Gunakan Proxy Statis</label>
-      <!-- Opsi Proxy Lokal -->
+      <!-- Opsi Proxy Lokal (/proxy?url=) -->
       <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy"> Gunakan Proxy Lokal</label>
     </div>
     

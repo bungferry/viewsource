@@ -60,11 +60,10 @@ import { ref, onMounted, nextTick } from "vue";
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/github-dark.css";
-import "highlightjs-line-numbers.js/dist/highlightjs-line-numbers.css";
 import "highlightjs-line-numbers.js";
 import htmlBeautify from "js-beautify";
 
-// Register bahasa HTML
+// Daftarkan bahasa HTML
 hljs.registerLanguage("html", xml);
 
 const urlInput = ref("https://example.com");
@@ -77,10 +76,12 @@ const isLoading = ref(false);
 const codeBlockRef = ref(null);
 let lastBlobUrl = null;
 
+// URL Konstanta
 const DEFAULT_URL = "https://example.com";
 const FALLBACK_FETCH_PROXY = "https://api.allorigins.win/raw?url=";
 const LOCAL_PROXY_BASE_URL = "/proxy?url=";
 
+// Fungsi bantu
 function showCodeActions(url) {
   codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
@@ -96,6 +97,7 @@ function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
 
+// Salin kode
 function copyCode() {
   navigator.clipboard
     .writeText(codeContent.value)
@@ -103,6 +105,7 @@ function copyCode() {
     .catch(() => alert("Gagal menyalin kode."));
 }
 
+// Unduh kode
 function downloadCode() {
   const codeText = codeContent.value;
   const url = urlInput.value.trim();
@@ -123,6 +126,7 @@ function downloadCode() {
   document.body.removeChild(link);
 }
 
+// Ambil kode sumber
 async function fetchSource(url) {
   if (!url) {
     statusMessage.value = "Masukkan URL yang valid.";
@@ -163,7 +167,14 @@ async function fetchSource(url) {
 
     const html = await res.text();
 
-    const formattedHtml = htmlBeautify.html_beautify(html.trim(), {
+    // ⚠️ Tidak lagi menghapus <style> atau <link> agar CSS tetap tampil
+    const cleanedHtml = html.trim();
+
+    const encoder = new TextEncoder();
+    const byteLength = encoder.encode(cleanedHtml).length;
+    const formattedSize = formatBytes(byteLength);
+
+    const formattedHtml = htmlBeautify.html_beautify(cleanedHtml, {
       indent_size: 2,
       space_in_empty_paren: true,
       end_with_newline: true,
@@ -172,20 +183,15 @@ async function fetchSource(url) {
     codeContent.value = formattedHtml;
     await nextTick();
 
+    // Highlight dan line number
     if (codeBlockRef.value) {
       hljs.highlightElement(codeBlockRef.value);
-      await nextTick();
-      setTimeout(() => {
-        if (typeof hljs.lineNumbersBlock === "function") {
-          hljs.lineNumbersBlock(codeBlockRef.value);
-        }
-      }, 50);
+      if (typeof hljs.lineNumbersBlock === "function") {
+        hljs.lineNumbersBlock(codeBlockRef.value);
+      }
     }
 
-    const encoder = new TextEncoder();
-    const byteLength = encoder.encode(formattedHtml).length;
-    const formattedSize = formatBytes(byteLength);
-
+    // Base tag biar preview relatif tetap jalan
     const baseTag = `<base href="${url}">`;
     const htmlWithBase = formattedHtml.replace(
       /<head[^>]*>/i,
@@ -196,6 +202,7 @@ async function fetchSource(url) {
     lastBlobUrl = previewBlobUrl;
 
     statusMessage.value = `Fetched ${formattedSize} in ${duration} seconds. <br> Sumber Preview: <a href="${previewBlobUrl}" target="_blank">${url}</a>`;
+
     showCodeActions(url);
   } catch (err) {
     console.error("FETCH ERROR:", err);

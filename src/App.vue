@@ -4,7 +4,7 @@ import { ref, onMounted, nextTick } from 'vue';
 // --- IMPORT LIBRARY EXTERNAL (Sudah di-install via npm) ---
 import hljs from 'highlight.js/lib/core';
 import htmlBeautify from 'js-beautify';
-// Solusi untuk error impor: import tanpa nama
+// SOLUSI: Import highlightjs-line-numbers.js tanpa nama (untuk menghindari error build)
 import 'highlightjs-line-numbers.js'; 
 
 // Daftarkan bahasa HTML (XML)
@@ -15,7 +15,7 @@ hljs.registerLanguage('html', xml);
 
 // --- STATE (Data Reaktif) ---
 const urlInput = ref('https://example.com');
-const codeContent = ref('');
+const codeContent = ref(''); // INI ADALAH SUMBER KODE YANG BENAR
 const statusMessage = ref('');
 const useProxy = ref(true); // checked
 const useLocalProxy = ref(false);
@@ -31,7 +31,7 @@ const LOCAL_PROXY_BASE_URL = '/proxy?url=';
 
 // --- FUNGSI UTILITAS ---
 function showCodeActions(url) {
-    // PERBAIKAN 1: Menghapus tanda kurung yang menyebabkan error sintaks ESBuild
+    // Perbaikan syntax yang stabil
     codeActionsActive.value = url.trim() !== DEFAULT_URL;
 }
 
@@ -51,8 +51,8 @@ function formatBytes(bytes, decimals = 2) {
 // --- FUNGSI AKSI ---
 
 function copyCode() {
-    // Pastikan kita menyalin teks dari elemen yang sudah di-highlight (codeBlockRef)
-    const codeText = codeBlockRef.value.textContent; 
+    // PERBAIKAN STABILITAS: Ambil konten dari state Vue, bukan DOM
+    const codeText = codeContent.value; 
     navigator.clipboard.writeText(codeText).then(() => {
         window.alert('Kode sumber berhasil disalin!');
     }).catch(err => {
@@ -62,7 +62,8 @@ function copyCode() {
 }
 
 function downloadCode() {
-    const codeText = codeBlockRef.value.textContent;
+    // PERBAIKAN STABILITAS: Ambil konten dari state Vue, bukan DOM
+    const codeText = codeContent.value; 
     const url = urlInput.value.trim();
     let fileName = 'source.html';
     try {
@@ -133,18 +134,19 @@ async function fetchSource(url) {
             end_with_newline: true
         });
 
+        // 1. Update state (sumber kebenaran)
         codeContent.value = formattedHtml;
         
         // Tunggu DOM diupdate
         await nextTick();
         
-        // Lakukan highlighting dan line numbers
+        // 2. Lakukan highlighting dan line numbers pada DOM yang sudah diperbarui
         if (codeBlockRef.value) {
             // Hilangkan class hljs-ln agar penomoran baris diinisiasi ulang dengan benar
             codeBlockRef.value.classList.remove('hljs-ln');
             hljs.highlightElement(codeBlockRef.value);
             
-            // PERBAIKAN 2: Mengaktifkan kembali penomoran baris yang sebelumnya ter-comment
+            // Mengaktifkan kembali penomoran baris
             if (codeBlockRef.value.textContent.trim().length > 0) {
               hljs.lineNumbersBlock(codeBlockRef.value);
             }

@@ -75,7 +75,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
-  <script>
+<script>
     const urlInput = document.getElementById('urlInput');
     const codeBlock = document.getElementById('codeBlock');
     const viewBtn = document.getElementById('viewBtn');
@@ -90,6 +90,25 @@
 
     let lastBlobUrl = null;
 
+    // --- FUNGSI VALIDASI BARU ---
+    function isValidUrl(url) {
+        // Ekspresi Reguler untuk mengecek awalan: https://, http://, atau www.
+        const urlPattern = /^(https?:\/\/.+)|(www\..+)/i;
+        return urlPattern.test(url);
+    }
+
+    // --- FUNGSI UNTUK MENORMALISASI URL ---
+    function normalizeUrl(url) {
+        let normalized = url.trim();
+
+        // 1. Jika URL dimulai dengan www. tapi tidak ada protokol, tambahkan https://
+        if (normalized.startsWith('www.') && !normalized.startsWith('http')) {
+            normalized = 'https://' + normalized;
+        }
+        return normalized;
+    }
+    // -----------------------------
+    
     function showCodeActions(url) {
         if (url.trim() !== DEFAULT_URL) codeActions.classList.add('active');
         else codeActions.classList.remove('active');
@@ -170,10 +189,35 @@
       }
     }
 
-    function initializeAndFetch() { fetchSource(urlInput.value.trim()); }
+    function initializeAndFetch() { 
+        // Normalisasi URL sebelum fetching pertama
+        const initialUrl = normalizeUrl(urlInput.value.trim());
+        urlInput.value = initialUrl;
+        fetchSource(initialUrl); 
+    }
+    
+    // --- PERUBAHAN PADA EVENT LISTENER ---
     viewBtn.addEventListener('click', () => {
-      const url = urlInput.value.trim();
-      if (!url) { status.textContent = 'Masukkan URL valid.'; return; }
+      let url = urlInput.value.trim();
+      
+      // 1. Validasi Input Kosong
+      if (!url) { 
+          status.textContent = 'Masukkan URL valid.'; 
+          return; 
+      }
+
+      // 2. Validasi Format Awalan
+      if (!isValidUrl(url)) {
+          status.textContent = 'URL tidak valid. Harus diawali dengan http://, https://, atau www.';
+          codeBlock.textContent = ''; // Hapus kode sebelumnya jika ada
+          hideCodeActions();
+          return;
+      }
+      
+      // 3. Normalisasi URL sebelum diproses
+      url = normalizeUrl(url);
+      urlInput.value = url; // Update input field dengan URL yang sudah dinormalisasi
+      
       fetchSource(url);
     });
   </script>

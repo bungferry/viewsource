@@ -211,7 +211,7 @@ window.addEventListener('unload', () => {
     
     <!-- Controls Section -->
     <div class="controls">
-      <!-- Tag input ini adalah tag tanpa penutup, perlu self-closing slash di Vue -->
+      <!-- PERBAIKAN: Tag <input> pertama di bagian controls -->
       <input type="text" v-model="urlInput" placeholder="https://example.com" />
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
@@ -220,8 +220,9 @@ window.addEventListener('unload', () => {
     
     <!-- Options Section -->
     <div class="options">
-      <!-- PERBAIKAN: Tag <input> sekarang menggunakan self-closing slash (/>) untuk mencegah SyntaxError -->
+      <!-- PERBAIKAN: Tag <input> kedua (Proxy Statis) -->
       <label><input type="checkbox" v-model="useProxy" :disabled="useLocalProxy" /> Gunakan Proxy Statis</label>
+      <!-- PERBAIKAN: Tag <input> ketiga (Proxy Lokal) -->
       <label><input type="checkbox" v-model="useLocalProxy" :disabled="useProxy" /> Gunakan Proxy Lokal</label>
     </div>
     
@@ -234,6 +235,7 @@ window.addEventListener('unload', () => {
             <button @click="copyCode"><i class="fas fa-copy"></i> Salin</button>
             <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
         </div>
+        <!-- Catatan: Class 'html' penting untuk highlighting yang benar -->
         <pre><code ref="codeBlockRef" id="codeBlock" class="html">{{ codeContent }}</code></pre>
     </div>
     

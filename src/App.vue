@@ -8,6 +8,7 @@
         type="text"
         v-model="urlInput"
         placeholder="https://example.com"
+        @keyup.enter="fetchSource(urlInput.trim())"
       />
       <button @click="fetchSource(urlInput.trim())" :disabled="isLoading">
         {{ isLoading ? 'Memuat...' : 'View Source' }}
@@ -44,7 +45,7 @@
         <button @click="downloadCode"><i class="fas fa-download"></i> Unduh</button>
       </div>
 
-      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs line-numbers">{{ codeContent }}</code></pre>
+      <pre><code ref="codeBlockRef" id="codeBlock" class="html hljs">{{ codeContent }}</code></pre>
     </div>
 
     <footer>
@@ -60,11 +61,12 @@ import { ref, onMounted, nextTick } from "vue";
 import hljs from "highlight.js/lib/core";
 import xml from "highlight.js/lib/languages/xml";
 import "highlight.js/styles/github-dark.css";
-import "highlightjs-line-numbers.js";
+import lineNumbers from "highlightjs-line-numbers-es"; // <-- 1. IMPORT PLUGIN BARU
 import htmlBeautify from "js-beautify";
 
 // Daftarkan bahasa HTML
 hljs.registerLanguage("html", xml);
+hljs.addPlugin(lineNumbers()); // <-- 2. DAFTARKAN PLUGIN
 
 const urlInput = ref("https://example.com");
 const codeContent = ref("");
@@ -166,10 +168,7 @@ async function fetchSource(url) {
       throw new Error(`Gagal memuat kode: ${res.status} ${res.statusText}`);
 
     const html = await res.text();
-
-    // ⚠️ Tidak lagi menghapus <style> atau <link> agar CSS tetap tampil
     const cleanedHtml = html.trim();
-
     const encoder = new TextEncoder();
     const byteLength = encoder.encode(cleanedHtml).length;
     const formattedSize = formatBytes(byteLength);
@@ -183,12 +182,9 @@ async function fetchSource(url) {
     codeContent.value = formattedHtml;
     await nextTick();
 
-    // Highlight dan line number
+    // Highlight. Plugin line number akan bekerja otomatis
     if (codeBlockRef.value) {
-      hljs.highlightElement(codeBlockRef.value);
-      if (typeof hljs.lineNumbersBlock === "function") {
-        hljs.lineNumbersBlock(codeBlockRef.value);
-      }
+      hljs.highlightElement(codeBlockRef.value); // <-- 3. CUKUP PANGGIL INI
     }
 
     // Base tag biar preview relatif tetap jalan
